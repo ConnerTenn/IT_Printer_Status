@@ -1,0 +1,15 @@
+
+[Dd]ebug/
+[Rr]elease/
+[Bb]uild/
+.vscode/
+
+*.o
+*.obj
+*.pch
+*.dll
+*.a
+*.lib
+*.exe
+*.out
+*.app
