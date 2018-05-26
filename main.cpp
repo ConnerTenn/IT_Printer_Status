@@ -1,46 +1,37 @@
 
-#include <iostream>
-#include <ncurses.h>
-#include <unistd.h>
-#include "Printer.h"
+//#include <iostream>
+
+//#include <unistd.h>
+//#include <stdio.h>
+#include <fstream>
+//#include <vector>
+//#include "Printer.h"
+#include "Screen.h"
+
+std::vector<Printer> PrinterList;
+
+void InitPrinters()
+{
+	std::ifstream file("Printers.txt");
+	std::string line;
+	
+	while(std::getline(file, line))
+	{
+		PrinterList.push_back(Printer(line));
+	}
+}
+
+
+
 
 int main()
 {
-	//std::cout << "Hello World\n";
-	/*initscr();
-	cbreak();
-	noecho();
-	keypad(stdscr, TRUE);
-	start_color();
-	//nodelay(stdscr, TRUE);
-	init_pair(1, COLOR_BLACK, COLOR_RED);
-    init_pair(2, COLOR_BLACK, COLOR_GREEN);
+	Screen screen;
+	InitPrinters();
 	
-	//WINDOW * win = newwin(50, 300, 0, 0);
-	refresh();
+	screen.Draw();
 	
-	for (int i = 0; i < 1000; i++)
-	{
-		addch(i); 
-		refresh();
-		attron(COLOR_PAIR(i%2+1));
-	}
 	
-    init_pair(2, COLOR_GREEN, COLOR_BLACK);
-	
-	addch(ACS_ULCORNER);
-	
-	int ch = getch();
-	
-	//delwin(win);
-	
-	endwin();*/
-	
-	Printer print;
-	
-	print.Name = "c238";
-	std::cout << print.Update() << "\n";
-	std::cout << print.Html << "\n";
-	
+	getch();
 	return 0;
 }

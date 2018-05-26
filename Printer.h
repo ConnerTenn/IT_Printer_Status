@@ -1,4 +1,8 @@
 
+
+#ifndef _PRINTER_H_
+#define _PRINTER_H_
+
 #include <string>
 #include <curl/curl.h>
 
@@ -7,15 +11,23 @@ struct Printer
 	std::string Name;
 	std::string Html;
 	
+	Printer() {}
+	Printer(std::string name) : Name(name) {}
+	
+	std::string GetStatus()
+	{
+		return "";
+	}
+	
 	std::string GetUrlTopbar()
 	{
-		return std::string("br-") + Name + "-prn2.internal/cgi-bin/dynamic/topbar.html";
+		return "br-" + Name + "-prn2.internal/cgi-bin/dynamic/topbar.html";
 	}
 	
 	std::string GetUrlStatus()
 	{
 		return "http://v4.ifconfig.co";
-		//return std::string("br-") + Name + "-prn2.internal/cgi-bin/printer/PrinterStatus.html";
+		return std::string("br-") + Name + "-prn2.internal/cgi-bin/printer/PrinterStatus.html";
 	}
 	
 	static size_t WriteCallback(void* buf, size_t size, size_t nmemb, void* userp)
@@ -49,3 +61,4 @@ struct Printer
 	}
 };
 
+#endif
