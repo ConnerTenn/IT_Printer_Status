@@ -24,14 +24,14 @@ void InitPrinters()
 
 int main()
 {
-	Screen screen;
 	InitPrinters();
+	Screen screen;
 	
 	bool run = true;
 	
 	while (run == true)
 	{
-		
+		//screen.Cursor = (screen.Cursor+1)%PrinterList.size();
 		screen.Draw();
 		
 		
@@ -47,6 +47,14 @@ int main()
 		else if (key == KEY_DOWN)
 		{
 			screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
+		}
+		else if (key == KEY_LEFT)
+		{
+			screen.ScrollX--;
+		}
+		else if (key == KEY_RIGHT)
+		{
+			screen.ScrollX++;
 		}
 	}
 	return 0;

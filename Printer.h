@@ -26,7 +26,6 @@ struct Printer
 	std::string GetUrlStatus();
 	
 	static size_t WriteCallback(void* buf, size_t size, size_t nmemb, void* userp);
-
 	
 	int Update();
 };
