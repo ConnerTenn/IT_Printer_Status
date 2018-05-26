@@ -6,12 +6,14 @@
 #include <string>
 #include <curl/curl.h>
 
-std::string Search(std::string delim);
+std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
+void Replace(std::string &str, std::string find, std::string replace);
 
 struct Printer
 {
 	std::string Name;
 	std::string Html;
+	std::string Status;
 	
 	Printer();
 	Printer(std::string name);

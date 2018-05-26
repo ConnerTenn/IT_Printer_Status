@@ -1,9 +1,91 @@
 
 #include "Printer.h"
 
-std::string Search(std::string delim)
+std::string Search(std::string str, std::string delim, int offset, int *i)
 {
+	std::string found;
 	
+	int s = offset, d = 0;
+	bool any = false;
+	bool copy = false;
+	while (s < (int)str.size() && d < (int)delim.size())
+	{
+		if (delim[d] == '*')
+		{
+			any = true;
+			d++;
+		}
+		else if (delim[d] == '@')
+		{
+			copy = true;
+			d++;
+		}
+		else if (any)
+		{
+			if (str[s] == delim[d])
+			{
+				any = false;
+			}
+			else
+			{
+				s++;	
+			}
+		}
+		else if (copy)
+		{
+			if (str[s] == delim[d])
+			{
+				copy = false;
+			}
+			else
+			{
+				found += str[s];
+				s++;
+			}
+		}
+		else if (str[s] == delim[d])
+		{
+			s++;
+			d++;
+		}
+		else
+		{
+			if (d == 0) { s++; }
+			else { d = 0; }
+		}
+	}
+	
+	if (d < (int)delim.size()) { return "-1"; }
+	if (i) { *i = s; }
+	return found; 
+}
+
+void Replace(std::string &str, std::string find, std::string replace)
+{
+	int s = 0, f = 0, r = 0;
+	while (s < (int)str.size())
+	{
+		if (str[s] == find[f])
+		{
+			if (!r) { r = s; }
+			s++;
+			f++;
+		}
+		else
+		{
+			if (f == 0) { s++; }
+			else { f = 0; }
+			r = 0;
+		}
+		
+		if (f >= (int)find.size())
+		{
+			str.replace(r, s-r, replace);
+			s -= (s-r);
+			f = 0;
+			r = 0;
+		}
+	}
 }
 
 
@@ -13,11 +95,18 @@ Printer::Printer(std::string name) : Name(name) {}
 
 std::string Printer::GetStatus()
 {
-	std::string status;
+	Status = "\"";
+	int offset = 0;
+	Status += Search(Html, "<td*class=\"statusLine\"*>*>@<", offset, &offset);
+	Status += ", ";
+	Status += Search(Html, "<td*class=\"statusLine\"*>*>@<", offset);
 	
+	Replace(Status, "&#032;&#032;", "");
+	Replace(Status, "&#032;", " ");
+	Status += "\"";
+	//Status = Html;
 	
-	
-	return "";
+	return Status;
 }
 
 std::string Printer::GetUrlTopbar()
@@ -45,7 +134,7 @@ size_t Printer::WriteCallback(void* buf, size_t size, size_t nmemb, void* userp)
 
 int Printer::Update()
 {
-	CURL *curl = curl_easy_init();
+	/*CURL *curl = curl_easy_init();
 	if(!curl) { return 0; }
 	
 	CURLcode res;
@@ -58,7 +147,23 @@ int Printer::Update()
 	res = curl_easy_perform(curl);
 	curl_easy_cleanup(curl);
 	
-	return res;
+	return res;*/
+	
+#include <stdio.h>
+	FILE *file = fopen("html1.html", "r");
+	fseek(file, 0, SEEK_END);
+	long size = ftell(file);
+	fseek(file, 0, SEEK_SET);
+	
+	char *buff = new char[size + 1];
+	fread(buff, size, 1, file);
+	fclose(file);
+	buff[size-1] = 0;
+	Html = std::string(buff);
+	//printf("%d\n", size);
+	delete[] buff;
+	
+	return 0;
 }
 	
 	

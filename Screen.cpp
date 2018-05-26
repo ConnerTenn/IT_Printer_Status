@@ -30,7 +30,7 @@ Screen::Screen()
 }
 
 Screen::~Screen()
-{
+{	
 	endwin();
 }
 
@@ -65,7 +65,8 @@ void Screen::Draw()
 		{
 			attron(COLOR_PAIR(1));
 		}
-		waddstr(stdscr, (PrinterList[i].Name + PrinterList[i].GetStatus()).c_str()); FillLine(' ');
+		PrinterList[i].Update();
+		waddstr(stdscr, (PrinterList[i].Name + "\t" + PrinterList[i].GetStatus()).c_str()); FillLine(' ');
 	}
 	
 	refresh();
