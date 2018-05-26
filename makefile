@@ -4,10 +4,13 @@ D=Build
 
 all: $D/run.exe
 
-$D/run.exe: $D/main.o
-	$(GPP) $D/main.o -o $D/run.exe
+$D/run.exe: $D/main.o $D/Screen.o
+	$(GPP) $D/main.o $D/Screen.o -o $D/run.exe
 
-$D/main.o: main.cpp Printer.h Screen.h
+$D/Screen.o: Screen.cpp Screen.h
+	$(GPP) Screen.cpp -c -o $D/Screen.o
+
+$D/main.o: main.cpp Printer.h
 	$(GPP) main.cpp -c -o $D/main.o
 	
 run: all

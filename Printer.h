@@ -16,6 +16,10 @@ struct Printer
 	
 	std::string GetStatus()
 	{
+		std::string status;
+		
+		
+		
 		return "";
 	}
 	
