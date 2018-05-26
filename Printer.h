@@ -14,6 +14,7 @@ struct Printer
 	std::string Name;
 	std::string Html;
 	std::string Status;
+	char StatusColour = 0;
 	
 	Printer();
 	Printer(std::string name);

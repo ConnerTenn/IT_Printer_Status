@@ -19,9 +19,16 @@ Screen::Screen()
 	curs_set(0);//invisible cursor
 	
 	start_color();
+	
+	//Normal
+	//Bar
+	//Selected
+	//
 	init_pair(1, COLOR_WHITE, COLOR_BLACK);
 	init_pair(2, COLOR_BLACK, COLOR_GREEN);
 	init_pair(3, COLOR_BLACK, COLOR_CYAN);
+	init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(5, COLOR_RED, COLOR_BLACK);
 	
 	
 	getmaxyx(stdscr, Y, X);
@@ -51,7 +58,7 @@ void Screen::Draw()
 {
 	clear();
 	
-	wattron(stdscr, COLOR_PAIR(2));
+	wattrset(stdscr, COLOR_PAIR(2));
 	waddstr(stdscr, "Name\tStatus"); FillLine(' ');
 	
 	
@@ -59,14 +66,16 @@ void Screen::Draw()
 	{
 		if (i == Cursor)
 		{
-			attron(COLOR_PAIR(3));
+			attrset(COLOR_PAIR(3));
 		}
 		else
 		{
-			attron(COLOR_PAIR(1));
+			attrset(COLOR_PAIR(1));
 		}
 		PrinterList[i].Update();
-		waddstr(stdscr, (PrinterList[i].Name + "\t" + PrinterList[i].GetStatus()).c_str()); FillLine(' ');
+		waddstr(stdscr, (PrinterList[i].Name + "\t").c_str());
+		if (i != Cursor) { if (PrinterList[i].StatusColour == 0) { attrset(COLOR_PAIR(1)); } if (PrinterList[i].StatusColour == 1) { attrset(A_BOLD | COLOR_PAIR(4)); } }
+		waddstr(stdscr, PrinterList[i].Status.c_str()); FillLine(' ');
 	}
 	
 	refresh();

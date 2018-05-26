@@ -104,7 +104,12 @@ std::string Printer::GetStatus()
 	Replace(Status, "&#032;&#032;", "");
 	Replace(Status, "&#032;", " ");
 	Status += "\"";
-	//Status = Html;
+	
+	
+	if (Search(Html, "<table*bgcolor=\"@\"") == "#FFFF66")
+	{
+		StatusColour = 1;
+	}
 	
 	return Status;
 }
@@ -162,6 +167,10 @@ int Printer::Update()
 	Html = std::string(buff);
 	//printf("%d\n", size);
 	delete[] buff;
+	
+	
+	GetStatus();
+	
 	
 	return 0;
 }
