@@ -174,5 +174,22 @@ int Printer::Update()
 	
 	return 0;
 }
+
+void Printer::Draw(Screen *screen, WINDOW *pad, bool selected)
+{
+	auto tab = [&](){ wattrset(pad, COLOR_PAIR(selected ? HIGHLIGHT : NORMAL)); waddstr(pad, "    "); wattrset(pad, COLOR_PAIR(NORMAL)); };
+	//wattrset(pad, COLOR_PAIR(i==Cursor ? HIGHLIGHT : NORMAL));
+	wattrset(pad, (selected ? A_BOLD : 0));
+	wattrset(pad, (selected ? COLOR_PAIR(HIGHLIGHT) | A_BOLD | A_DIM : COLOR_PAIR(NORMAL)));
+	waddstr(pad, Name.c_str());
+	wattrset(pad, COLOR_PAIR(NORMAL));
+	waddstr(pad, ("\t" + Status).c_str());  FillLine(pad, ' ');
+
+	tab(); waddstr(pad, "Toner ["); for (int i=0;i<10;i++) {waddch(pad, i<5?ACS_CKBOARD:' ');} waddstr(pad, "]"); FillLine(pad, ' ');
+	tab(); waddstr(pad, "Tray 1\tOK\t500\tLetter\tPlain Paper"); FillLine(pad, ' ');
+	tab(); waddstr(pad, "Tray 2\tOK\t500\tLetter\tPlain Paper"); FillLine(pad, ' ');
+	tab(); waddstr(pad, "Tray 3\tOK\t500\tLetter\tPlain Paper"); FillLine(pad, ' ');
+	tab(); waddstr(pad, "Tray 4\tOK\t500\tLetter\tPlain Paper"); FillLine(pad, ' ');
+}
 	
 	

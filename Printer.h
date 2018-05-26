@@ -1,10 +1,13 @@
 
+struct Printer;
 
 #ifndef _PRINTER_H_
 #define _PRINTER_H_
 
 #include <string>
 #include <curl/curl.h>
+#include <ncurses.h>
+#include "Screen.h"
 
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);
@@ -28,6 +31,8 @@ struct Printer
 	static size_t WriteCallback(void* buf, size_t size, size_t nmemb, void* userp);
 	
 	int Update();
+	
+	void Draw(Screen *screen, WINDOW *pad, bool selected);
 };
 
 #endif

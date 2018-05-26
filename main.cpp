@@ -25,20 +25,29 @@ void InitPrinters()
 int main()
 {
 	InitPrinters();
-	Screen screen;
+	Screen screen; screen.Draw();
 	
 	bool run = true;
-	
 	while (run == true)
 	{
 		//screen.Cursor = (screen.Cursor+1)%PrinterList.size();
+		for (int i = 0; i < (int)PrinterList.size(); i++)
+		{
+			PrinterList[i].Update();
+		}
+		
 		screen.Draw();
+		
 		
 		
 		int key = getch();
 		if (key == 27)
 		{
 			run = false;
+		}
+		else if (key == KEY_RESIZE)
+		{
+			screen.Resize();
 		}
 		else if (key == KEY_UP)
 		{
