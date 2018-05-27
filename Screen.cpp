@@ -94,8 +94,8 @@ Screen::Screen()
 
 Screen::~Screen()
 {	
-	delwin(TopPad);
-	delwin(Pad);
+	delwin(TopPad); TopPad = 0;
+	delwin(Pad); Pad = 0;
 	endwin();
 }
 
@@ -151,7 +151,10 @@ void Screen::Draw()
 		//wattrset(Pad, COLOR_PAIR(GREY));
 		Border(Pad, x, printerPos-1, x+PrinterWidth+1, printerPos+PrinterHeight);
 		//wattrset(Pad, COLOR_PAIR(NORMAL));
+		
+		PrinterList[i].Mutex->lock();
 		PrinterList[i].Draw(this);
+		PrinterList[i].Mutex->unlock();
 		//wborder(PrinterList[i].Pad, '1','2','3','4','5','6','7','8');
 		
 		mvderwin(PrinterList[i].Pad, printerPos, x+1);

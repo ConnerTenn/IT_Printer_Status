@@ -1,5 +1,5 @@
 
-GPP=g++ -std=c++17 -Wall -lncurses -lcurl
+GPP=g++ -std=c++17 -Wall -lncurses -lcurl -lpthread
 D=Build
 
 all: $D/run.exe

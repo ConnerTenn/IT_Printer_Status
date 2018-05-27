@@ -7,6 +7,8 @@ struct Printer;
 #include <string>
 #include <curl/curl.h>
 #include <ncurses.h>
+#include <thread>
+#include <mutex>
 #include "Screen.h"
 
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
@@ -42,8 +44,11 @@ struct Printer
 	
 	WINDOW *Pad = 0;
 	
+	std::mutex *Mutex = 0;
+	
 	Printer();
 	Printer(std::string name);
+	~Printer();
 	
 	void GetStatus();
 	

@@ -2,6 +2,7 @@
 //#include <iostream>
 
 #include <unistd.h>
+#include <time.h>
 //#include <stdio.h>
 #include <fstream>
 //#include <vector>
@@ -19,6 +20,30 @@ void InitPrinters()
 	{
 		PrinterList.push_back(Printer(line));
 	}
+	
+	for (int i = 0; i < (int)PrinterList.size(); i++)
+	{
+		PrinterList[i].Mutex = new std::mutex;
+	}
+}
+
+bool Run = true;
+std::mutex PrinterLock;
+time_t Timer = 0;
+
+void UpdatePrinters()
+{
+	while (Run)
+	{
+		sleep(1);
+		PrinterLock.lock();
+		
+		for (int i = 0; Run && i < (int)PrinterList.size(); i++)
+		{
+			PrinterList[i].Update();
+		}
+		PrinterLock.unlock();
+	}
 }
 
 
@@ -27,23 +52,39 @@ int main()
 	InitPrinters();
 	Screen screen; screen.Draw();
 	
-	bool run = true;
-	while (run == true)
+	std::thread printerThread(UpdatePrinters);
+	
+	Timer = 1;
+	
+	while (Run == true)
 	{
 		//screen.Cursor = (screen.Cursor+1)%PrinterList.size();
-		for (int i = 0; i < (int)PrinterList.size(); i++)
-		{
-			printf("%d ",PrinterList[i].Update());
-		}
+		
 		
 		screen.Draw();
 		
 		
+		if (Timer && time(0) - Timer > 5)
+		{
+			PrinterLock.unlock();
+			Timer = 0;
+			
+		}
+		else if (Timer == 0)
+		{
+			if (PrinterLock.try_lock())
+			{
+				
+				Timer = time(0);
+			}
+		}
+		//printf("%d\n", time(0) - Time1);
 		
 		int key = getch();
+		
 		if (key == 27)
 		{
-			run = false;
+			Run = false;
 		}
 		else if (key == KEY_RESIZE)
 		{
@@ -69,5 +110,9 @@ int main()
 			screen.ScrollX+=3;
 		}
 	}
+	
+	PrinterLock.unlock();
+	printerThread.join();
+	
 	return 0;
 }
