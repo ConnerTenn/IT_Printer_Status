@@ -105,20 +105,22 @@ Printer::~Printer()
 void Printer::GetStatus()
 {
 	{
-		Status = "\"";
+		Buffer = "\"";
 		int offset = 0;
-		Status += Search(HtmlTopBar, "<td*class=\"statusLine\"*>*>@<", offset, &offset);
-		Status += ", ";
-		Status += Search(HtmlTopBar, "<td*class=\"statusLine\"*>*>@<", offset);
+		Buffer += Search(HtmlTopBar, "<td*class=\"statusLine\"*>*>@<", offset, &offset);
+		Buffer += ", ";
+		Buffer += Search(HtmlTopBar, "<td*class=\"statusLine\"*>*>@<", offset);
 		
-		Replace(Status, "&#032;&#032;", "");
-		Replace(Status, "&#032;", " ");
-		Status += "\"";
+		Replace(Buffer, "&#032;&#032;", "");
+		Replace(Buffer, "&#032;", " ");
+		Buffer += "\"";
 		
 		if (Search(HtmlTopBar, "<table*bgcolor=\"@\"") == "#FFFF66")
 		{
 			StatusColour = 0b011000;
 		}
+
+		Status = Buffer;
 	}
 	
 	Mutex->lock();
@@ -194,7 +196,7 @@ size_t Printer::WriteCallback(void* buf, size_t size, size_t nmemb, void* userp)
 	if(userp)
 	{
 		((Printer *)userp)->Mutex->lock();
-		((Printer *)userp)->HtmlStatus.append((char *)buf, size * nmemb);
+		((Printer *)userp)->Buffer.append((char *)buf, size * nmemb);
 		((Printer *)userp)->Mutex->unlock();
 		
 		return size * nmemb;
@@ -207,7 +209,7 @@ size_t Printer::WriteCallback(void* buf, size_t size, size_t nmemb, void* userp)
 int Printer::Update()
 {
 	
-	CURL *curl = curl_easy_init();
+	/*CURL *curl = curl_easy_init();
 	if(!curl) { return 0; }
 	CURLcode res = CURLE_OK;
 	
@@ -217,10 +219,10 @@ int Printer::Update()
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1);
-	HtmlStatus.clear();
+	Buffer.clear();
 	if (Search(HtmlTopBar, "<html class=\"top_bar\">") == "-1") { res = CURLE_COULDNT_RESOLVE_HOST; }
 	res = curl_easy_perform(curl);
-	HtmlTopBar = HtmlStatus;
+	HtmlTopBar = Buffer;
 	
 	if (res != CURLE_OK) { Status = "Network Error"; StatusColour = 0b001000; }
 	
@@ -230,18 +232,19 @@ int Printer::Update()
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1);
-	HtmlStatus.clear();
+	Buffer.clear();
 	res = (res?res:curl_easy_perform(curl));
 	if (Search(HtmlStatus, "<title>Printer Status</title>") == "-1") { res = CURLE_COULDNT_RESOLVE_HOST; }
 	if (res != CURLE_OK) { Status = "Network Error"; StatusColour = 0b001000; }
+	HtmlStatus = Buffer;
 
 	
 	curl_easy_cleanup(curl);
 	
 	if (res == CURLE_OK) { GetStatus(); }
 	
-	return res;
-	/*
+	return res;*/
+	
 #include <stdio.h>
 	FILE *file = fopen("html1.html", "r");
 	fseek(file, 0, SEEK_END);
@@ -274,7 +277,7 @@ int Printer::Update()
 	GetStatus();
 	
 	
-	return 0;*/
+	return 0;
 }
 
 void Printer::Draw(Screen *screen)

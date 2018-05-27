@@ -67,10 +67,14 @@ Screen::Screen()
 	
 	cbreak(); //disable buffereing until enter is pressed
 	noecho(); //dont print character to termial
+
 	keypad(stdscr, TRUE); //retrive special keys
+
 	//nodelay(stdscr, TRUE); //dont delay
 	timeout(1000); //block getch for 1 sec
+#ifdef LINUX
 	set_escdelay(10); //escape character dalay is 10 ms
+#endif
 	//raw();
 	curs_set(0);//invisible cursor
 	
@@ -88,8 +92,10 @@ Screen::Screen()
 	
 	TopPad = newpad(1, 1000);
 	Resize();
-	
+
+#ifdef WINDOWS
 	//signal(SIGWINCH, Resize);
+#endif
 }
 
 Screen::~Screen()
@@ -109,10 +115,23 @@ void Screen::Resize(int val)
 
 void Screen::Resize()
 {
+#ifdef WINDOWS
+	//resize_term(2000, 2000);
+	getmaxyx(stdscr, Height, Width);
+	resize_term(Height, Width);
+	//getmaxyx(stdscr, Height, Width);
+	refresh();
+#endif
+
+
+#ifdef LINUX
 	endwin();
 	
 	refresh();
+
+	
 	getmaxyx(stdscr, Height, Width);
+#endif
 	
 	PrinterCols = MAX(1, Width / (MinPrinterWidth+2));
 	PrinterWidth = Width / PrinterCols - 2;
@@ -197,10 +216,12 @@ void Screen::Draw()
 	
 	
 	
-	refresh();
+	wnoutrefresh(stdscr);
 	
 	//touchwin(Pad);
-	prefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-1);
+	pnoutrefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-1);
 	
-	prefresh(TopPad, 0, ScrollX,0,0,1,Width-1);
+	pnoutrefresh(TopPad, 0, ScrollX,0,0,1,Width-1);
+
+	doupdate();
 }

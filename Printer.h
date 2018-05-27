@@ -4,9 +4,19 @@ struct Printer;
 #ifndef _PRINTER_H_
 #define _PRINTER_H_
 
+
+#ifdef WINDOWS
+#include <windows.h>
+#undef MOUSE_MOVED
+#endif
+
 #include <string>
 #include <curl/curl.h>
+#ifdef WINDOWS
+#include <curses.h>
+#elif LINUX
 #include <ncurses.h>
+#endif
 #include <thread>
 #include <mutex>
 #include "Screen.h"
@@ -36,6 +46,7 @@ struct Printer
 	std::string HtmlTopBar;
 	std::string HtmlStatus;
 	std::string Status;
+	std::string Buffer;
 	char StatusColour = 0;
 	
 	std::vector<Tray> TrayList;

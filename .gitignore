@@ -3,6 +3,7 @@
 [Rr]elease/
 [Bb]uild/
 .vscode/
+.vs/
 
 *.o
 *.obj
@@ -14,3 +15,5 @@
 *.out
 *.app
 *.html
+*.sln
+*.vcx*

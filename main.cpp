@@ -1,7 +1,11 @@
 
 //#include <iostream>
-
+#ifdef WINDOWS
+#include <windows.h>
+#undef MOUSE_MOVED
+#elif LINUX
 #include <unistd.h>
+#endif
 #include <time.h>
 //#include <stdio.h>
 #include <fstream>
@@ -28,21 +32,29 @@ void InitPrinters()
 }
 
 bool Run = true;
+#ifdef LINUX
 std::mutex PrinterLock;
 time_t Timer = 0;
+#endif
 
 void UpdatePrinters()
 {
 	while (Run)
 	{
+#ifdef WINDOWS
+		Sleep(500);
+#elif LINUX
 		sleep(1);
 		PrinterLock.lock();
+#endif
 		
 		for (int i = 0; Run && i < (int)PrinterList.size(); i++)
 		{
 			PrinterList[i].Update();
 		}
+#ifdef LINUX
 		PrinterLock.unlock();
+#endif
 	}
 }
 
@@ -53,9 +65,11 @@ int main()
 	Screen screen; screen.Draw();
 	
 	std::thread printerThread(UpdatePrinters);
-	
+
+#ifdef LINUX
 	Timer = 1;
-	
+#endif
+
 	while (Run == true)
 	{
 		//screen.Cursor = (screen.Cursor+1)%PrinterList.size();
@@ -63,7 +77,7 @@ int main()
 		
 		screen.Draw();
 		
-		
+#ifdef LINUX
 		if (Timer && time(0) - Timer > 5)
 		{
 			PrinterLock.unlock();
@@ -79,6 +93,7 @@ int main()
 			}
 		}
 		//printf("%d\n", time(0) - Time1);
+#endif
 		
 		int key = getch();
 		
@@ -87,6 +102,10 @@ int main()
 			Run = false;
 		}
 		else if (key == KEY_RESIZE)
+		{
+			screen.Resize();
+		}
+		else if (key == 'r')
 		{
 			screen.Resize();
 		}
@@ -110,9 +129,11 @@ int main()
 			screen.ScrollX+=3;
 		}
 	}
-	
+
+#ifdef LINUX
 	PrinterLock.unlock();
+#endif
 	printerThread.join();
-	
+
 	return 0;
 }
