@@ -10,6 +10,8 @@ struct Screen;
 #include "Printer.h"
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define ROUND(a) (((a) - (int)(a)) > 0.5 ? (int)(a) + 1 : (int)(a) )
 
 extern std::vector<Printer> PrinterList;
 
@@ -22,6 +24,7 @@ enum Colours
 	HIGHLIGHT = 0b000110,
 	YELLOW_HIGHLIGHT = HIGHLIGHT | YELLOW,
 	RED_HIGHLIGHT = HIGHLIGHT | RED,
+	GREY = 64,
 };
 
 void FillLine(char chr);

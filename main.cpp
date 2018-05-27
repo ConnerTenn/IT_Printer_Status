@@ -33,7 +33,7 @@ int main()
 		//screen.Cursor = (screen.Cursor+1)%PrinterList.size();
 		for (int i = 0; i < (int)PrinterList.size(); i++)
 		{
-			PrinterList[i].Update();
+			printf("%d ",PrinterList[i].Update());
 		}
 		
 		screen.Draw();

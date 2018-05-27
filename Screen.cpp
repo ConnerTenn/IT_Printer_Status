@@ -13,12 +13,12 @@ void FillLine(WINDOW *win, char chr)
 	waddstr(win, std::string(getmaxx(win)-getcurx(win), chr).c_str());
 }
 
-std::string GetFillLine(char chr)
+std::string GetFullLine(char chr)
 {
 	return std::string(getmaxx(stdscr)-getcurx(stdscr), chr);
 }
 
-std::string GetFillLine(WINDOW *win, char chr)
+std::string GetFullLine(WINDOW *win, char chr)
 {
 	return std::string(getmaxx(win)-getcurx(win), chr);
 }
@@ -76,20 +76,14 @@ Screen::Screen()
 	
 	start_color();
 	
-	//init_color(27, 0,0,0); //Colour 27 of BGR values
+	init_color(GREY, 500, 500, 500); //Colour of BGR values, max 1000
 	init_color(COLOR_WHITE, 1000,1000,1000);
-	/*init_pair(NORMAL, COLOR_WHITE, COLOR_BLACK);
-	init_pair(TOPBAR, COLOR_BLACK, COLOR_GREEN);
-	init_pair(YELLOW, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(RED, COLOR_RED, COLOR_BLACK);
-	init_pair(HIGHLIGHT, COLOR_BLACK, COLOR_CYAN);
-	init_pair(YELLOW_HIGHLIGHT, COLOR_YELLOW, COLOR_CYAN);
-	init_pair(RED_HIGHLIGHT, COLOR_RED, COLOR_CYAN);*/
 	
 	for (unsigned short i = 0; i <= 0b111111; i++)
 	{
 		init_pair(i, (i & 0b111000) >> 3, i & 0b000111);
 	}
+	init_pair(GREY, GREY, 0);
 	
 	
 	TopPad = newpad(1, 1000);
@@ -120,7 +114,7 @@ void Screen::Resize()
 	refresh();
 	getmaxyx(stdscr, Height, Width);
 	
-	PrinterCols = Width / MaxPrinterWidth + 1;
+	PrinterCols = MAX(1, Width / (MinPrinterWidth+2));
 	PrinterWidth = Width / PrinterCols - 2;
 	
 	if (Pad) { delwin(Pad); }
@@ -154,8 +148,9 @@ void Screen::Draw()
 		//if (i == Cursor) { selectedPrinterPos = printerPos; }
 		//if (i) { wmove(Pad, printerPos-1, 0); waddch(Pad, ACS_LTEE); wmove(Pad, printerPos-1, PrinterWidth+1); waddch(Pad, ACS_RTEE); }
 		
-		
+		//wattrset(Pad, COLOR_PAIR(GREY));
 		Border(Pad, x, printerPos-1, x+PrinterWidth+1, printerPos+PrinterHeight);
+		//wattrset(Pad, COLOR_PAIR(NORMAL));
 		PrinterList[i].Draw(this);
 		//wborder(PrinterList[i].Pad, '1','2','3','4','5','6','7','8');
 		
@@ -179,7 +174,7 @@ void Screen::Draw()
 		waddstr(Pad, "Apple");
 	}*/
 	
-	wattrset(Pad, 0);
+	
 	
 	/*move(1,1); 
 	addch(ACS_ULCORNER); addch(ACS_URCORNER); addch(ACS_LLCORNER); addch(ACS_LRCORNER); addch(ACS_PLUS);
@@ -189,15 +184,19 @@ void Screen::Draw()
 	move(1,4); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_LRCORNER); BottomText+=" ";
 	move(1,5); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_PLUS); BottomText+=" ";*/
 	
+	wattrset(stdscr, COLOR_PAIR(0b111100));
 	
-	BottomText += "Width:" + std::to_string(Width) + "  Height:" + std::to_string(Height) + "  PrinterWidth:" + std::to_string(PrinterWidth) + "  PrinterCols:" + std::to_string(PrinterCols) + "  Val:" + std::to_string(A_CHARTEXT);
+	BottomText += "Printers:" + std::to_string(PrinterList.size()) + "  Width:" + std::to_string(Width) + "  Height:" + std::to_string(Height) + "  PrinterWidth:" + std::to_string(PrinterWidth) + "  PrinterCols:" + std::to_string(PrinterCols) + GetFullLine(stdscr, ' ');
 	mvaddstr(Height-1, 0, BottomText.c_str());
 	BottomText = "";
+	
+	wattrset(stdscr, COLOR_PAIR(NORMAL));
+	
+	
 	
 	refresh();
 	
 	//touchwin(Pad);
-	//prefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-1);
 	prefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-1);
 	
 	prefresh(TopPad, 0, ScrollX,0,0,1,Width-1);
