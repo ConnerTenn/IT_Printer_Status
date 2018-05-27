@@ -28,6 +28,7 @@ void FillLine(char chr);
 void FillLine(WINDOW *win, char chr);
 std::string GetFullLine(char chr);
 std::string GetFullLine(WINDOW *win, char chr);
+void Border(WINDOW *win, int x1, int y1, int x2, int y2);
 
 struct Screen
 {
@@ -38,8 +39,8 @@ struct Screen
 	
 	std::string BottomText;
 	
-	WINDOW *TopPad;
-	WINDOW *Pad;
+	WINDOW *TopPad = 0;
+	WINDOW *Pad = 0;
 	
 	Screen();
 	~Screen();

@@ -51,19 +51,22 @@ int main()
 		}
 		else if (key == KEY_UP)
 		{
-			screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
+			//screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
+			screen.ScrollY=MAX(screen.ScrollY-3, 0);
 		}
 		else if (key == KEY_DOWN)
 		{
-			screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
+			//screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
+			//if ((screen.Cursor + 1) * (PrinterHeight + 1) > screen.Height + screen.ScrollY) { screen.ScrollY+=PrinterHeight; }
+			screen.ScrollY+=3;
 		}
 		else if (key == KEY_LEFT)
 		{
-			screen.ScrollX--;
+			screen.ScrollX=MAX(screen.ScrollX-3, 0);
 		}
 		else if (key == KEY_RIGHT)
 		{
-			screen.ScrollX++;
+			screen.ScrollX+=3;
 		}
 	}
 	return 0;

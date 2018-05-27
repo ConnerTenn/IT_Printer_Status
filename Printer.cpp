@@ -1,6 +1,9 @@
 
 #include "Printer.h"
 
+int PrinterWidth = 50;
+int PrinterCols = 1;
+
 std::string Search(std::string str, std::string delim, int offset, int *i)
 {
 	std::string found;
@@ -175,9 +178,11 @@ int Printer::Update()
 	return 0;
 }
 
-void Printer::Draw(Screen *screen, WINDOW *pad, bool selected)
+void Printer::Draw(Screen *screen)
 {
-	auto tab = [&](){ wattrset(pad, COLOR_PAIR(selected ? HIGHLIGHT : NORMAL)); waddstr(pad, "    "); wattrset(pad, COLOR_PAIR(NORMAL)); };
+	wclear(Pad);
+	
+	/*auto tab = [&](){ wattrset(pad, COLOR_PAIR(selected ? HIGHLIGHT : NORMAL)); waddstr(pad, "    "); wattrset(pad, COLOR_PAIR(NORMAL)); };
 	//wattrset(pad, COLOR_PAIR(i==Cursor ? HIGHLIGHT : NORMAL));
 	wattrset(pad, (selected ? A_BOLD : 0));
 	wattrset(pad, (selected ? COLOR_PAIR(HIGHLIGHT) | A_BOLD | A_DIM : COLOR_PAIR(NORMAL)));
@@ -190,6 +195,32 @@ void Printer::Draw(Screen *screen, WINDOW *pad, bool selected)
 	tab(); waddstr(pad, "Tray 2\tOK\t500\tLetter\tPlain Paper"); FillLine(pad, ' ');
 	tab(); waddstr(pad, "Tray 3\tOK\t500\tLetter\tPlain Paper"); FillLine(pad, ' ');
 	tab(); waddstr(pad, "Tray 4\tOK\t500\tLetter\tPlain Paper"); FillLine(pad, ' ');
+	FillLine(pad, ' ');*/
+	
+	//auto begin = [&](){ if (selected) { wattrset(pad, COLOR_PAIR(selected?HIGHLIGHT:NORMAL)); } waddstr(pad, " "); wattrset(pad, COLOR_PAIR(NORMAL)); waddstr(pad, " "); };
+	
+	//wattrset(pad, COLOR_PAIR(selected?HIGHLIGHT:NORMAL));
+	waddstr(Pad, (Name).c_str());
+	waddstr(Pad, "  ");
+	//wattrset(pad, selected ? ( A_BOLD | A_REVERSE | COLOR_PAIR(YELLOW) | A_DIM ) : (A_BOLD | A_DIM | COLOR_PAIR(YELLOW) ));
+	waddstr(Pad, (Status).c_str()); 
+	//wattrset(pad, COLOR_PAIR(selected?HIGHLIGHT:NORMAL));
+	FillLine(Pad, ' '); 
+	//wattrset(pad, COLOR_PAIR(NORMAL));
+	
+	
+	waddstr(Pad, "Toner ["); 
+	//wattrset(pad, COLOR_PAIR(0b111111));
+	for (int i=0;i<10;i++) { waddch(Pad, i<5?ACS_CKBOARD:' '); } 
+	//wattrset(pad, COLOR_PAIR(NORMAL));
+	
+	waddstr(Pad, "]"); FillLine(Pad, ' ');
+	
+	waddstr(Pad, "Tray 1  OK  500  Letter  Plain Paper"); FillLine(Pad, ' ');
+	waddstr(Pad, "Tray 2  OK  500  Letter  Plain Paper"); FillLine(Pad, ' ');
+	waddstr(Pad, "Tray 3  OK  500  Letter  Plain Paper"); FillLine(Pad, ' ');
+	waddstr(Pad, "Tray 4  OK  500  Letter  Plain Paper"); FillLine(Pad, ' ');
+	//FillLine(Pad, '-');
 }
 	
 	

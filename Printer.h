@@ -12,12 +12,21 @@ struct Printer;
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);
 
+const int PrinterHeight = 6;
+const int MinPrinterWidth = 50;
+const int MaxPrinterWidth = 100;
+extern int PrinterWidth;
+extern int PrinterCols;
+
+
 struct Printer
 {
 	std::string Name;
 	std::string Html;
 	std::string Status;
 	char StatusColour = 0;
+	
+	WINDOW *Pad = 0;
 	
 	Printer();
 	Printer(std::string name);
@@ -32,7 +41,7 @@ struct Printer
 	
 	int Update();
 	
-	void Draw(Screen *screen, WINDOW *pad, bool selected);
+	void Draw(Screen *screen);
 };
 
 #endif
