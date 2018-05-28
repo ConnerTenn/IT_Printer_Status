@@ -1,5 +1,5 @@
 
-F=-D LINUX
+F=-D LINUX $(if $(filter debug,$(MAKECMDGOALS)),-D DEBUG, )
 GPP=g++ -std=c++17 -Wall -lncurses -lcurl -lpthread $F
 D=Build
 
@@ -24,6 +24,9 @@ clean:
 	rm $D/* -f
 	
 force: clean all
+
+debug:
+	
 
 
 #windows:

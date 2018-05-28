@@ -1,7 +1,7 @@
 
 #include "Printer.h"
 
-
+int PrinterHeight = 5;
 int PrinterWidth = 50;
 int PrinterCols = 1;
 
@@ -116,20 +116,24 @@ void Printer::GetStatus()
 		Replace(Buffer, "&#032;", " ");
 		Buffer += "\"";
 		
-		if (Search(HtmlTopBar, "<table*bgcolor=\"@\"") == "#FFFF66")
+		if (Search(HtmlTopBar, "<table*bgcolor=\"@\"") == "#FFFFFF")
+		{
+			StatusColour = 0b111000;
+		}
+		else if (Search(HtmlTopBar, "<table*bgcolor=\"@\"") == "#FFFF66")
 		{
 			StatusColour = 0b011000;
 		}
-
-		Status = Buffer;
 	}
 	
 	Mutex->lock();
+	Status = Buffer;
+	
 	{
 		int offset = 0;
 		
 		
-		Toner = stoi(Search(HtmlStatus, "Toner  ~@%"));
+		Toner = stoi(Search(HtmlStatus, "Black*~@%"));
 		
 		TrayList.clear();
 		std::string in;
@@ -183,13 +187,13 @@ void Printer::GetStatus()
 std::string Printer::GetUrlTopbar()
 {
 	//return "http://v4.ifconfig.co";
-	return "br-" + Name + "-prn2.internal/cgi-bin/dynamic/topbar.html";
+	return "br-" + Name + ".internal/cgi-bin/dynamic/topbar.html";
 }
 
 std::string Printer::GetUrlStatus()
 {
 	//return "http://v4.ifconfig.co";
-	return std::string("br-") + Name + "-prn2.internal/cgi-bin/printer/PrinterStatus.html";
+	return "br-" + Name + ".internal/cgi-bin/dynamic/printer/PrinterStatus.html";
 }
 
 size_t Printer::WriteCallback(void* buf, size_t size, size_t nmemb, void* userp)
@@ -209,7 +213,7 @@ size_t Printer::WriteCallback(void* buf, size_t size, size_t nmemb, void* userp)
 
 int Printer::Update()
 {
-	
+#ifndef DEBUG
 	CURL *curl = curl_easy_init();
 	if(!curl) { return 0; }
 	CURLcode res = CURLE_OK;
@@ -221,11 +225,11 @@ int Printer::Update()
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1);
 	Buffer.clear();
-	if (Search(HtmlTopBar, "<html class=\"top_bar\">") == "-1") { res = CURLE_COULDNT_RESOLVE_HOST; }
+	//if (Search(HtmlTopBar, "<html class=\"top_bar\">") == "-1") { res = CURLE_RECV_ERROR; }
 	res = curl_easy_perform(curl);
 	HtmlTopBar = Buffer;
 	
-	if (res != CURLE_OK) { Status = "Network Error"; StatusColour = 0b001000; }
+	if (res != CURLE_OK) { Status = "Network Error:" + std::to_string(res); StatusColour = 0b001000; }
 	
 	curl_easy_setopt(curl, CURLOPT_URL, GetUrlStatus().c_str());
 	//curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
@@ -235,8 +239,8 @@ int Printer::Update()
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1);
 	Buffer.clear();
 	res = (res?res:curl_easy_perform(curl));
-	if (Search(HtmlStatus, "<title>Printer Status</title>") == "-1") { res = CURLE_COULDNT_RESOLVE_HOST; }
-	if (res != CURLE_OK) { Status = "Network Error"; StatusColour = 0b001000; }
+	//if (Search(HtmlStatus, "<title>Printer Status</title>") == "-1") { res = CURLE_RECV_ERROR; }
+	if (res != CURLE_OK) { Status = "Network Error:" + std::to_string(res); StatusColour = 0b001000; }
 	HtmlStatus = Buffer;
 
 	
@@ -246,9 +250,10 @@ int Printer::Update()
 	
 	return res;
 
-	/*
+#else
+	
 #include <stdio.h>
-	FILE *file = fopen("html1.html", "r");
+	FILE *file = fopen((Name + "-topbar.html").c_str(), "r");
 	fseek(file, 0, SEEK_END);
 	long size = ftell(file);
 	fseek(file, 0, SEEK_SET);
@@ -261,7 +266,7 @@ int Printer::Update()
 	//printf("%d\n", size);
 	delete[] buff;
 	
-	file = fopen("html2.html", "r");
+	file = fopen((Name + "-status.html").c_str(), "r");
 	fseek(file, 0, SEEK_END);
 	size = ftell(file);
 	fseek(file, 0, SEEK_SET);
@@ -277,7 +282,7 @@ int Printer::Update()
 	GetStatus();
 	
 	return 0;
-	*/
+#endif
 }
 
 void Printer::Draw(Screen *screen)

@@ -24,11 +24,12 @@ struct Printer;
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);
 
-const int PrinterHeight = 5;
 const int MinPrinterWidth = 77;
 const int MaxPrinterWidth = 80;
+extern int PrinterHeight = 5; //Defined in Printer.cpp
 extern int PrinterWidth; //Defined in Printer.cpp
 extern int PrinterCols; //Defined in Printer.cpp
+extern int DisplayStyle; //Defined in Printer.cpp
 
 
 struct Tray
@@ -48,6 +49,7 @@ struct Printer
 	std::string Status;
 	std::string Buffer;
 	char StatusColour = 0;
+	bool Expanded = false;
 	
 	std::vector<Tray> TrayList;
 	
