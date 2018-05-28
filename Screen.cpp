@@ -82,13 +82,22 @@ Screen::Screen()
 	
 	init_color(GREY, 500, 500, 500); //Colour of BGR values, max 1000
 	init_color(COLOR_WHITE, 1000,1000,1000);
-	
+
+	init_pair(GREY, GREY, 0);
+#ifdef LINUX
+	//Format: BGRBGR
 	for (unsigned short i = 0; i <= 0b111111; i++)
 	{
 		init_pair(i, (i & 0b111000) >> 3, i & 0b000111);
 	}
-	init_pair(GREY, GREY, 0);
-	
+#elif WINDOWS
+	//Format: RGBRGB
+	for (unsigned short i = 0; i <= 0b111111; i++)
+	{
+		//swaps R and B signals for initilization
+		init_pair((i & 0b010010) | ((i & 0b100100) >> 2) | ((i & 0b001001) << 2), (i & 0b111000) >> 3, i & 0b000111);
+	}
+#endif
 	
 	TopPad = newpad(1, 1000);
 	Resize();

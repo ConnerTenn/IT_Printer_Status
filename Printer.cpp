@@ -321,6 +321,7 @@ void Printer::Draw(Screen *screen)
 		
 		for (int i = 0; i < (int)TrayList.size(); i++)
 		{
+			const int columnOffset = 39;
 			int len = TrayList.size() - 2;
 			int x=0, y=0;
 			if (TrayList[i].Name == "Feeder")
@@ -329,12 +330,12 @@ void Printer::Draw(Screen *screen)
 			}
 			else if (TrayList[i].Name == "Bin   ")
 			{
-				x = 42;
+				x = columnOffset;
 				y = (len-len%2)/2;
 			}
 			else
 			{
-				x = (i >= (len-len%2)/2) * 39;
+				x = (i >= (len-len%2)/2) * columnOffset;
 				y = (i % ((len-len%2)/2));
 			}
 			//int x = ((i >= (len-len%2)/2 && i<len-1) || ((i==len-1) && (i%2))) * 42;
