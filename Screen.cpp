@@ -13,7 +13,7 @@ void FillLine(WINDOW *win, char chr)
 	waddstr(win, std::string(getmaxx(win)-getcurx(win), chr).c_str());
 }
 
-std::string GetFullLine(char chr)
+/*std::string GetFullLine(char chr)
 {
 	return std::string(getmaxx(stdscr)-getcurx(stdscr), chr);
 }
@@ -21,15 +21,17 @@ std::string GetFullLine(char chr)
 std::string GetFullLine(WINDOW *win, char chr)
 {
 	return std::string(getmaxx(win)-getcurx(win), chr);
-}
+}*/
 
 void Border(WINDOW *win, int x1, int y1, int x2, int y2)
 {
+	//Add straight lines
 	wmove(win, y1, x1+1); whline(win, ACS_HLINE, x2-x1-1);
 	wmove(win, y2, x1+1); whline(win, ACS_HLINE, x2-x1-1);
 	wmove(win, y1+1, x1); wvline(win, ACS_VLINE, y2-y1-1);
 	wmove(win, y1+1, x2); wvline(win, ACS_VLINE, y2-y1-1);
 	
+	//Checks what's under the cursor and replaces it with the new border character; handles border overlap
 	auto replace = [&](int place)->int
 	{
 		const int map[4][11][2] = 
@@ -53,6 +55,7 @@ void Border(WINDOW *win, int x1, int y1, int x2, int y2)
 		return place;
 	};
 	
+	//handle corners of the border
 	wmove(win, y1, x1); waddch(win, replace(ACS_ULCORNER));
 	wmove(win, y1, x2); waddch(win, replace(ACS_URCORNER));
 	wmove(win, y2, x1); waddch(win, replace(ACS_LLCORNER));
@@ -142,12 +145,18 @@ void Screen::Resize()
 	getmaxyx(stdscr, Height, Width);
 #endif
 	
+	//Get Nuber of columns and width of the printer tiles
 	PrinterCols = MAX(1, Width / (MinPrinterWidth+2));
-	PrinterWidth = Width / PrinterCols - 2;
+	PrinterWidth = MAX(Width / PrinterCols - 2, MinPrinterWidth);
 	
+
+	//FIX: This implementation works but is very slow
+
+	//Recreate Pad
 	if (Pad) { delwin(Pad); }
 	Pad = newpad(MAX(((int)PrinterList.size()/PrinterCols + 1)*(PrinterHeight+1)+1, Height-2), (PrinterWidth+2)*PrinterCols);
 	
+	//Recreate Pads for each printer
 	for (int i = 0; Pad && i < (int)PrinterList.size(); i++)
 	{
 		if (PrinterList[i].Pad) { delwin(PrinterList[i].Pad); }
@@ -157,24 +166,22 @@ void Screen::Resize()
 
 void Screen::Draw()
 {
+	//Clear Pads
 	clear();
 	wclear(TopPad);
 	wclear(Pad);
 	
+	//Top Text Panel
 	wattrset(TopPad, COLOR_PAIR(TOPBAR));
 	waddstr(TopPad, "Name\tStatus"); FillLine(TopPad, ' ');
-	//wattrset(stdscr, 0);
+	wattrset(TopPad, COLOR_PAIR(NORMAL));
 	
-	
-	//wborder(Pad, '1','2','3','4','5','6','7','8');
+	//Do drawing for printer grid
 	int printerPos = 1;
-	//int selectedPrinterPos = 0;
 	for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
 		int x = (i % PrinterCols) * (PrinterWidth+1);
 		
-		//if (i == Cursor) { selectedPrinterPos = printerPos; }
-		//if (i) { wmove(Pad, printerPos-1, 0); waddch(Pad, ACS_LTEE); wmove(Pad, printerPos-1, PrinterWidth+1); waddch(Pad, ACS_RTEE); }
 		
 		//wattrset(Pad, COLOR_PAIR(GREY));
 		Border(Pad, x, printerPos-1, x+PrinterWidth+1, printerPos+PrinterHeight);
@@ -189,22 +196,6 @@ void Screen::Draw()
 		if ((i+1)%PrinterCols == 0) { printerPos+=PrinterHeight+1; } 
 	}
 	
-	/*{
-		wattrset(Pad, COLOR_PAIR(0b110110));
-		Border(Pad, 0, selectedPrinterPos-1, PrinterWidth+1, selectedPrinterPos+PrinterHeight);
-		//if (i) { wmove(Pad, printerPos-1, 0); waddch(Pad, ACS_LTEE); wmove(Pad, printerPos-1, PrinterWidth+1); waddch(Pad, ACS_RTEE); }
-		wattrset(Pad, COLOR_PAIR(NORMAL));
-	}*/
-	
-	/*waddstr(Pad, "\n");
-	for (unsigned int i = 0; i <= 0b111111 * 2; i++)
-	{
-		if (!(i % 8)) { waddstr(Pad, "\n"); }
-		if (i==0b1000000) { waddstr(Pad, "\n\n"); }
-		wattrset(Pad, COLOR_PAIR(i%0b111111) | (i&0b1000000?A_BOLD : 0));
-		waddstr(Pad, "Apple");
-	}*/
-	
 	
 	
 	/*move(1,1); 
@@ -215,22 +206,20 @@ void Screen::Draw()
 	move(1,4); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_LRCORNER); BottomText+=" ";
 	move(1,5); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_PLUS); BottomText+=" ";*/
 	
+	//Bottom Text Panel
 	wattrset(stdscr, COLOR_PAIR(0b111100));
-	
-	BottomText += "Printers:" + std::to_string(PrinterList.size()) + "  Width:" + std::to_string(Width) + "  Height:" + std::to_string(Height) + "  PrinterWidth:" + std::to_string(PrinterWidth) + "  PrinterCols:" + std::to_string(PrinterCols) + GetFullLine(stdscr, ' ');
-	mvaddstr(Height-1, 0, BottomText.c_str());
+	BottomText += "Printers:" + std::to_string(PrinterList.size()) + "  Width:" + std::to_string(Width) + "  Height:" + std::to_string(Height) + "  PrinterWidth:" + std::to_string(PrinterWidth) + "  PrinterCols:" + std::to_string(PrinterCols);
+	mvaddstr(Height - 1, 0, BottomText.c_str()); FillLine(stdscr, ' ');
 	BottomText = "";
-	
 	wattrset(stdscr, COLOR_PAIR(NORMAL));
 	
 	
-	
+	//Refresh display elements
 	wnoutrefresh(stdscr);
-	
 	//touchwin(Pad);
 	pnoutrefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-1);
-	
 	pnoutrefresh(TopPad, 0, ScrollX,0,0,1,Width-1);
 
+	//Draw update to screen. Doing this after reduces screen flicker
 	doupdate();
 }

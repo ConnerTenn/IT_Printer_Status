@@ -16,10 +16,13 @@ struct Screen;
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define ROUND(a) (((a) - (int)(a)) > 0.5 ? (int)(a) + 1 : (int)(a) )
+//#define ROUND(a) (((a) - (int)(a)) > 0.5 ? (int)(a) + 1 : (int)(a) )
 
-extern std::vector<Printer> PrinterList;
+extern std::vector<Printer> PrinterList; //Defined in main.cpp
 
+//Colour Pair definitions
+//Linux:	BGRBGR
+//Windows:	RGBRGB
 enum Colours
 {
 	NORMAL = 0b111000,
@@ -34,15 +37,16 @@ enum Colours
 
 void FillLine(char chr);
 void FillLine(WINDOW *win, char chr);
+/* Warning, Do No Use; Cursor does not get updated before function call. If used concatinated with other characters to print a full line, will result in extra characters.
 std::string GetFullLine(char chr);
-std::string GetFullLine(WINDOW *win, char chr);
+std::string GetFullLine(WINDOW *win, char chr);*/
 void Border(WINDOW *win, int x1, int y1, int x2, int y2);
 
 struct Screen
 {
 	int Width, Height;
 	static Screen *This;
-	int Cursor = 0;
+	//int Cursor = 0;
 	int ScrollX = 0, ScrollY = 0;
 	
 	std::string BottomText;

@@ -27,8 +27,8 @@ void Replace(std::string &str, std::string find, std::string replace);
 const int PrinterHeight = 5;
 const int MinPrinterWidth = 77;
 const int MaxPrinterWidth = 80;
-extern int PrinterWidth;
-extern int PrinterCols;
+extern int PrinterWidth; //Defined in Printer.cpp
+extern int PrinterCols; //Defined in Printer.cpp
 
 
 struct Tray

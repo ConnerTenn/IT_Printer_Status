@@ -1,6 +1,7 @@
 
 #include "Printer.h"
 
+
 int PrinterWidth = 50;
 int PrinterCols = 1;
 
@@ -181,13 +182,13 @@ void Printer::GetStatus()
 
 std::string Printer::GetUrlTopbar()
 {
-	return "http://v4.ifconfig.co";
+	//return "http://v4.ifconfig.co";
 	return "br-" + Name + "-prn2.internal/cgi-bin/dynamic/topbar.html";
 }
 
 std::string Printer::GetUrlStatus()
 {
-	return "http://v4.ifconfig.co";
+	//return "http://v4.ifconfig.co";
 	return std::string("br-") + Name + "-prn2.internal/cgi-bin/printer/PrinterStatus.html";
 }
 
@@ -209,7 +210,7 @@ size_t Printer::WriteCallback(void* buf, size_t size, size_t nmemb, void* userp)
 int Printer::Update()
 {
 	
-	/*CURL *curl = curl_easy_init();
+	CURL *curl = curl_easy_init();
 	if(!curl) { return 0; }
 	CURLcode res = CURLE_OK;
 	
@@ -243,8 +244,9 @@ int Printer::Update()
 	
 	if (res == CURLE_OK) { GetStatus(); }
 	
-	return res;*/
-	
+	return res;
+
+	/*
 #include <stdio.h>
 	FILE *file = fopen("html1.html", "r");
 	fseek(file, 0, SEEK_END);
@@ -272,27 +274,15 @@ int Printer::Update()
 	//printf("%d\n", size);
 	delete[] buff;
 	
-	
-	
 	GetStatus();
 	
-	
 	return 0;
+	*/
 }
 
 void Printer::Draw(Screen *screen)
 {
 	wclear(Pad);
-	
-	/*auto tab = [&](){ wattrset(pad, COLOR_PAIR(selected ? HIGHLIGHT : NORMAL)); waddstr(pad, "    "); wattrset(pad, COLOR_PAIR(NORMAL)); };
-	//wattrset(pad, COLOR_PAIR(i==Cursor ? HIGHLIGHT : NORMAL));
-	wattrset(pad, (selected ? A_BOLD : 0));
-	wattrset(pad, (selected ? COLOR_PAIR(HIGHLIGHT) | A_BOLD | A_DIM : COLOR_PAIR(NORMAL)));
-	waddstr(pad, Name.c_str());
-	wattrset(pad, COLOR_PAIR(NORMAL));
-	waddstr(pad, ("\t" + Status).c_str());  FillLine(pad, ' ');*/
-	
-	//auto begin = [&](){ if (selected) { wattrset(pad, COLOR_PAIR(selected?HIGHLIGHT:NORMAL)); } waddstr(pad, " "); wattrset(pad, COLOR_PAIR(NORMAL)); waddstr(pad, " "); };
 	
 	wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000));
 	waddstr(Pad, " [");
@@ -352,11 +342,6 @@ void Printer::Draw(Screen *screen)
 			wattrset(Pad, COLOR_PAIR(NORMAL));
 			waddstr(Pad, ("," + std::to_string(TrayList[i].Capacity) + "," + TrayList[i].PageSize + "," + TrayList[i].PageType).c_str()); FillLine(Pad, ' ');
 		}
-		//waddstr(Pad, "Tray 1  OK  500  Letter  Plain Paper"); FillLine(Pad, ' ');
-		//waddstr(Pad, "Tray 2  OK  500  Letter  Plain Paper"); FillLine(Pad, ' ');
-		//waddstr(Pad, "Tray 3  OK  500  Letter  Plain Paper"); FillLine(Pad, ' ');
-		//waddstr(Pad, "Tray 4  OK  500  Letter  Plain Paper"); FillLine(Pad, ' ');
-		//FillLine(Pad, '-');
 	}
 }
 	

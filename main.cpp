@@ -25,6 +25,7 @@ void InitPrinters()
 		PrinterList.push_back(Printer(line));
 	}
 	
+	//mutexes created after adding printers to list to handle how std::vector copying and deleting Printer object issues
 	for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
 		PrinterList[i].Mutex = new std::mutex;
@@ -78,6 +79,7 @@ int main()
 		screen.Draw();
 		
 #ifdef LINUX
+		//Used to create Network update delay
 		if (Timer && time(0) - Timer > 5)
 		{
 			PrinterLock.unlock();
