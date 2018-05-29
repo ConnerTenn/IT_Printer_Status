@@ -53,6 +53,7 @@ struct Screen
 	
 	WINDOW *TopPad = 0;
 	WINDOW *Pad = 0;
+	WINDOW *Debug = 0;
 	
 	Screen();
 	~Screen();

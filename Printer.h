@@ -23,10 +23,11 @@ struct Printer;
 
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);
+bool First(std::string str, std::string first, std::string second, int offset = 0, int *i = 0);
 
-const int MinPrinterWidth = 77;
-const int MaxPrinterWidth = 80;
-extern int PrinterHeight = 5; //Defined in Printer.cpp
+const int MinPrinterWidth = 100;//77;
+const int MaxPrinterWidth = 100;//80;
+extern int PrinterHeight; //Defined in Printer.cpp
 extern int PrinterWidth; //Defined in Printer.cpp
 extern int PrinterCols; //Defined in Printer.cpp
 extern int DisplayStyle; //Defined in Printer.cpp
@@ -74,6 +75,8 @@ struct Printer
 	int Update();
 	
 	void Draw(Screen *screen);
+	void Draw1(Screen *screen);
+	void Draw2(Screen *screen);
 };
 
 #endif

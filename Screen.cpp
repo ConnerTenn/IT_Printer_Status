@@ -208,7 +208,7 @@ void Screen::Draw()
 	
 	//Bottom Text Panel
 	wattrset(stdscr, COLOR_PAIR(0b111100));
-	BottomText += "Printers:" + std::to_string(PrinterList.size()) + "  Width:" + std::to_string(Width) + "  Height:" + std::to_string(Height) + "  PrinterWidth:" + std::to_string(PrinterWidth) + "  PrinterCols:" + std::to_string(PrinterCols);
+	BottomText += "Printers:" + std::to_string(PrinterList.size()) + "  Width:" + std::to_string(Width) + "  Height:" + std::to_string(Height) + "  PrinterWidth:" + std::to_string(PrinterWidth) + "  PrinterHeight:" + std::to_string(PrinterHeight) + "  PrinterCols:" + std::to_string(PrinterCols);
 	mvaddstr(Height - 1, 0, BottomText.c_str()); FillLine(stdscr, ' ');
 	BottomText = "";
 	wattrset(stdscr, COLOR_PAIR(NORMAL));

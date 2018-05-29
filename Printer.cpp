@@ -4,6 +4,7 @@
 int PrinterHeight = 5;
 int PrinterWidth = 50;
 int PrinterCols = 1;
+int DisplayStyle = 1;
 
 std::string Search(std::string str, std::string delim, int offset, int *i)
 {
@@ -92,6 +93,52 @@ void Replace(std::string &str, std::string find, std::string replace)
 	}
 }
 
+bool First(std::string str, std::string first, std::string second, int offset, int *i)
+{
+	int s = 0, f1 = 0, f2 = 0;
+	bool incr = true;
+	
+	while (s < (int)str.size())
+	{
+		incr = true;
+		
+		if (str[s] == first[f2])
+		{
+			//incr = true && incr;
+			f1++;
+		}
+		else
+		{
+			if (f1 != 0) { f1 = 0; incr = false; }
+		}
+		
+		if (str[s] == second[f2])
+		{
+			//incr = true && incr;
+			f2++;
+		}
+		else
+		{
+			if (f2 != 0) { f2 = 0; incr = false; }
+		}
+		
+		if (f1 >= (int)first.size())
+		{
+			*i = s;
+			return true;
+		}
+		if (f2 >= (int)second.size())
+		{
+			*i = s;
+			return true;
+		}
+		
+		if (incr) { s++; }
+	}
+	
+	return -1;
+}
+
 
 Printer::Printer() : Printer("") {}
 Printer::Printer(std::string name) : Name(name) {}
@@ -137,47 +184,51 @@ void Printer::GetStatus()
 		
 		TrayList.clear();
 		std::string in;
+		
 		bool doTray = true;
 		while (doTray)
 		{
-			in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
-			if (in!="-1" && in.size() && in != "Standard Bin")
+			Search(HtmlStatus, "<TR>*<TD>", offset, &offset);
+			in = Search(HtmlStatus, "<P style=\"margin-left:5\">@<", offset, &offset);
+			if (in!="-1" && in.size())
 			{
 				TrayList.push_back(Tray());
-				Replace(in, "Multi-Purpose ", "");
+				//Replace(in, "Multi-Purpose ", "");
 				TrayList.back().Name = in;
 				
-				in = Search(HtmlStatus, "height=\"1\"><tr><td><b>@<", offset, &offset);
-				in += std::string(5-in.size(), ' ');
+				
+				in = Search(HtmlStatus, "<tr><td><b>@<", offset, &offset);
 				TrayList.back().Status = in;
 				
-				in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
-				TrayList.back().Capacity = stoi(in);
 				
-				in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
-				in += std::string(6-in.size(), ' ');
-				TrayList.back().PageSize = in;
+				if (First(HtmlStatus, "<TD>", "<TR>", offset) == true)
+				{
+					in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
+					TrayList.back().Capacity = stoi(in);
+					
+					if (First(HtmlStatus, "<TD>", "<TR>", offset) == true)
+					{
+						in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
+						in += std::string(MAX(6-(int)in.size(), 0), ' ');
+						TrayList.back().PageSize = in;
+						
+						if (First(HtmlStatus, "<TD>", "<TR>", offset) == true)
+						{
+							in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
+							Replace(in, "&nbsp;", " ");
+							TrayList.back().PageType = in;
+						}
+					}
+				}
 				
-				in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
-				Replace(in, "&nbsp;", " ");
-				TrayList.back().PageType = in;
-			}
-			else if (in == "Standard Bin")
-			{
-				TrayList.push_back(Tray());
-				TrayList.back().Name = "Bin   ";
 				
-				in = Search(HtmlStatus, "height=\"1\"><tr><td><b>@<", offset, &offset);
-				in += std::string(5-in.size(), ' ');
-				TrayList.back().Status = in;
 				
-				in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
-				TrayList.back().Capacity = stoi(in);
 			}
 			else
 			{
 				doTray = false;
 			}
+			
 		}
 		
 		Mutex->unlock();
@@ -253,33 +304,52 @@ int Printer::Update()
 #else
 	
 #include <stdio.h>
+
+	int res = 0;
+	
 	FILE *file = fopen((Name + "-topbar.html").c_str(), "r");
-	fseek(file, 0, SEEK_END);
-	long size = ftell(file);
-	fseek(file, 0, SEEK_SET);
+	if (file)
+	{
+		fseek(file, 0, SEEK_END);
+		long size = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		
+		char *buff = new char[size + 1];
+		fread(buff, size, 1, file);
+		fclose(file);
+		buff[size-1] = 0;
+		HtmlTopBar = std::string(buff);
+		//printf("%d\n", size);
+		delete[] buff;
+		
+		res = 1;
+	}
 	
-	char *buff = new char[size + 1];
-	fread(buff, size, 1, file);
-	fclose(file);
-	buff[size-1] = 0;
-	HtmlTopBar = std::string(buff);
-	//printf("%d\n", size);
-	delete[] buff;
 	
-	file = fopen((Name + "-status.html").c_str(), "r");
-	fseek(file, 0, SEEK_END);
-	size = ftell(file);
-	fseek(file, 0, SEEK_SET);
-	
-	buff = new char[size + 1];
-	fread(buff, size, 1, file);
-	fclose(file);
-	buff[size-1] = 0;
-	HtmlStatus = std::string(buff);
-	//printf("%d\n", size);
-	delete[] buff;
-	
-	GetStatus();
+	if (res) { file = fopen((Name + "-status.html").c_str(), "r"); }
+	if (file)
+	{
+		fseek(file, 0, SEEK_END);
+		long size = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		
+		char *buff = new char[size + 1];
+		fread(buff, size, 1, file);
+		fclose(file);
+		buff[size-1] = 0;
+		HtmlStatus = std::string(buff);
+		//printf("%d\n", size);
+		delete[] buff;
+	}
+		
+	if (!res)
+	{
+		Status = "File Error"; StatusColour = 0b001000;
+	}
+	else
+	{
+		GetStatus();
+	}
 	
 	return 0;
 #endif
@@ -289,6 +359,18 @@ void Printer::Draw(Screen *screen)
 {
 	wclear(Pad);
 	
+	if (DisplayStyle == 1)
+	{
+		Draw1(screen);
+	}
+	else if (DisplayStyle == 2)
+	{
+		Draw2(screen);
+	}
+}
+
+void Printer::Draw1(Screen *screen)
+{
 	wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000));
 	waddstr(Pad, " [");
 	waddstr(Pad, (Name).c_str());
@@ -340,14 +422,40 @@ void Printer::Draw(Screen *screen)
 			
 			waddstr(Pad, (TrayList[i].Name + "  ").c_str());
 			
-			if (TrayList[i].Status == "OK   ") { wattrset(Pad, COLOR_PAIR(0b010000)); }
-			if (TrayList[i].Status == "Low  ") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
+			if (TrayList[i].Status == "OK") { wattrset(Pad, COLOR_PAIR(0b010000)); }
+			if (TrayList[i].Status == "Low") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
 			if (TrayList[i].Status == "Empty") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
-			waddstr(Pad, TrayList[i].Status.c_str());
+			waddstr(Pad, (TrayList[i].Status + std::string(5-TrayList[i].Status.size(), ' ')).c_str());
 			wattrset(Pad, COLOR_PAIR(NORMAL));
 			waddstr(Pad, ("," + std::to_string(TrayList[i].Capacity) + "," + TrayList[i].PageSize + "," + TrayList[i].PageType).c_str()); FillLine(Pad, ' ');
 		}
 	}
 }
+
+void Printer::Draw2(Screen *screen)
+{
+	wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000));
+	waddstr(Pad, " [");
+	waddstr(Pad, (Name).c_str());
+	waddstr(Pad, "]");
+	wattrset(Pad, COLOR_PAIR(NORMAL));
+	waddstr(Pad, "  ");
 	
+	wattrset(Pad, A_BOLD | COLOR_PAIR(StatusColour));
+	waddstr(Pad, (Status).c_str()); 
+	wattrset(Pad, COLOR_PAIR(NORMAL));
+	waddstr(Pad, "  "); 
+	
+	wmove(Pad, 0, 50);
+	for (int i = 0; i < (int)TrayList.size(); i++)
+	{
+		waddstr(Pad, (TrayList[i].Name + "  ").c_str());
+			
+			if (TrayList[i].Status == "OK") { wattrset(Pad, COLOR_PAIR(0b010000)); }
+			if (TrayList[i].Status == "Low") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
+			if (TrayList[i].Status == "Empty") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
+			waddstr(Pad, (TrayList[i].Status + std::string(6-TrayList[i].Status.size(), ' ')).c_str());
+			wattrset(Pad, COLOR_PAIR(NORMAL));
+	}
+}	
 	

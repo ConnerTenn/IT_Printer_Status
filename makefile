@@ -1,5 +1,5 @@
 
-F=-D LINUX $(if $(filter debug,$(MAKECMDGOALS)),-D DEBUG, )
+F=-D LINUX $(if $(filter debug,$(MAKECMDGOALS)),-D DEBUG -ggdb, )
 GPP=g++ -std=c++17 -Wall -lncurses -lcurl -lpthread $F
 D=Build
 

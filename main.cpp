@@ -22,7 +22,10 @@ void InitPrinters()
 	
 	while(std::getline(file, line))
 	{
-		PrinterList.push_back(Printer(line));
+		if (line.size())
+		{
+			PrinterList.push_back(Printer(line));
+		}
 	}
 	
 	//mutexes created after adding printers to list to handle how std::vector copying and deleting Printer object issues
@@ -71,12 +74,13 @@ int main()
 	Timer = 1;
 #endif
 
+	screen.Draw();
+	
 	while (Run == true)
 	{
 		//screen.Cursor = (screen.Cursor+1)%PrinterList.size();
 		
 		
-		screen.Draw();
 		
 #ifdef LINUX
 		//Used to create Network update delay
@@ -96,6 +100,8 @@ int main()
 		}
 		//printf("%d\n", time(0) - Time1);
 #endif
+
+		screen.Draw();
 		
 		int key = getch();
 		
@@ -129,6 +135,21 @@ int main()
 		else if (key == KEY_RIGHT)
 		{
 			screen.ScrollX+=3;
+		}
+		else if (key == 't')
+		{			
+			if (DisplayStyle == 1)
+			{
+				DisplayStyle = 2;
+				PrinterHeight = 1;
+			}
+			else if (DisplayStyle == 2)
+			{
+				DisplayStyle = 1;
+				PrinterHeight = 5;
+			}
+			
+			screen.Resize();
 		}
 	}
 
