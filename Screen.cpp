@@ -173,7 +173,7 @@ void Screen::Draw()
 	
 	//Top Text Panel
 	wattrset(TopPad, A_BOLD | COLOR_PAIR(0b111010));
-	waddstr(TopPad, "  Name\t\t  Status\t\t\t       Toner\t\t\tTrays"); FillLine(TopPad, ' ');
+	waddstr(TopPad, "Top Bar Tempate"); FillLine(TopPad, ' ');
 	wattrset(TopPad, COLOR_PAIR(NORMAL));
 	
 	//Do drawing for printer grid

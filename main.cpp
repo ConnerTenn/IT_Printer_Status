@@ -45,10 +45,7 @@ void UpdatePrinters()
 {
 	while (Run)
 	{
-#ifdef WINDOWS
-		Sleep(500);
-#elif LINUX
-		sleep(1);
+#ifdef LINUX
 		PrinterLock.lock();
 #endif
 		
@@ -60,6 +57,15 @@ void UpdatePrinters()
 #ifdef LINUX
 		PrinterLock.unlock();
 #endif
+		
+		if (Run)
+		{
+#ifdef WINDOWS
+			Sleep(500);
+#elif LINUX
+			sleep(1);
+#endif
+		}
 	}
 }
 
@@ -119,6 +125,12 @@ int main()
 		else if (key == 'r')
 		{
 			screen.Resize();
+		}
+		else if (key == 'e')
+		{
+			bool allExpanded = true;
+			for (int i = 0; i < (int)PrinterList.size(); i++) { allExpanded = allExpanded && PrinterList[i].Expanded; }
+			for (int i = 0; i < (int)PrinterList.size(); i++) { PrinterList[i].Expanded = !allExpanded; }
 		}
 		else if (key == KEY_UP)
 		{

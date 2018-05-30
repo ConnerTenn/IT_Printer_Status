@@ -23,7 +23,7 @@ struct Printer;
 
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);
-bool First(std::string str, std::string first, std::string second, int offset = 0, int *i = 0);
+int First(std::string str, std::string first, std::string second, int offset = 0, int *i = 0);
 std::string MinSize(std::string str, int size);
 std::string MaxSize(std::string str, int size);
 
@@ -45,20 +45,32 @@ struct Tray
 	std::string PageType;
 };
 
+struct Kit
+{
+	std::string Name;
+	int LifeRemaining = 0;
+};
+
 struct Printer
 {
 	std::string Name;
+	std::string Model;
+	std::string Address;
+	std::string ContactName;;
+	
+	std::string MaintenanceKit;
+	std::string PCKit;
+	
+	std::string Buffer;
 	std::string HtmlTopBar;
 	std::string HtmlStatus;
 	std::string Status;
-	std::string Buffer;
-	std::string MaintenanceKit;
-	std::string PCKit;
 	
 	char StatusColour = 0;
 	bool Expanded = false;
 	
 	std::vector<Tray> TrayList;
+	std::vector<Kit> KitList;
 	
 	int Toner = 0;
 	
