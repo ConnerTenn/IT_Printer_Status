@@ -29,6 +29,8 @@ const int PrinterHeight = 5;
 const int PrinterWidth = 300; 
 extern Printer *Selected; //Defined in Printer.cpp
 extern int MaxStatusLength; //Defined in Printer.cpp
+extern int SortOrder; //Defined in Priner.cpp
+//extern std::mutex PrinterListGuard; //Defined in Printer.cpp
 
 
 void InitPrinters();

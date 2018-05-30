@@ -184,7 +184,10 @@ void Screen::Draw()
 	
 	//Top Text Panel
 	wattrset(TopPad, A_BOLD | COLOR_PAIR(0b111010));
-	waddstr(TopPad, " Name            Status");
+	waddstr(TopPad, " Name ");
+	if (SortOrder == 0) { waddch(TopPad, ACS_UARROW); } else { waddch(TopPad, ' '); }
+	waddstr(TopPad, "          Status ");
+	if (SortOrder == 1) { waddch(TopPad, ACS_UARROW); } else { waddch(TopPad, ' '); }
 	FillLine(TopPad, ' ');
 	wattrset(TopPad, COLOR_PAIR(NORMAL));
 	
@@ -292,6 +295,11 @@ void Screen::Draw()
 		waddstr(Popup, "R: ");
 		wattrset(Popup, COLOR_PAIR(NORMAL));
 		waddstr(Popup, "Refresh Printers\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "S: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Toggle Sort Order\n");
 		
 		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
 		waddstr(Popup, "E: ");

@@ -130,6 +130,7 @@ int main()
 		}
 		else if (key == 's')
 		{
+			SortOrder = (SortOrder > 0 ? 0 : SortOrder+1);
 			SortPrinters();
 		}
 		else if (key == KEY_UP)

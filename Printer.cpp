@@ -5,10 +5,14 @@
 std::vector<Printer *> PrinterList;
 Printer *Selected = 0;
 int MaxStatusLength = 0;
+int SortOrder = 0;
+//std::mutex PrinterListGuard;
 
 void InitPrinters()
-{
+{	
 	DestroyPrinters();
+	
+	//PrinterListGuard.lock();
 	
 	std::ifstream file("Printers.txt");
 	std::string line;
@@ -26,16 +30,23 @@ void InitPrinters()
 	{
 		PrinterList[i].Mutex = new std::mutex;
 	}*/
+	//PrinterListGuard.unlock();
+	
+	SortPrinters();
 }
 
 void DestroyPrinters()
 {
+	//PrinterListGuard.lock();
+	
 	for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
 		if (PrinterList[i]) { delete PrinterList[i]; }
 	}
 	
 	PrinterList.clear();
+	
+	//PrinterListGuard.unlock();
 }
 
 void SortPrinters()
@@ -46,24 +57,45 @@ void SortPrinters()
 		PrinterList[i]->Mutex->lock();
 	}
 	
-	auto sortFunc = [](Printer *a, Printer *b)->int{ return 1; };
+	auto sortFunc = [](Printer *a, Printer *b)->int
+		{ 
+			if (SortOrder == 0)
+			{
+				return a->Name.compare(b->Name);
+			}
+			else if (SortOrder == 1)
+			{
+				// Red, Yellow, Green
+				if (a->StatusColour == 0b001000) { if (b->StatusColour == 0b001000) { a->Name.compare(b->Name); } else { return -1; } }
+				else if (b->StatusColour == 0b001000) { return 1; }
+				else if (a->StatusColour == 0b011000) { if (b->StatusColour == 0b011000) { a->Name.compare(b->Name); } else { return -1; } }
+				else if (b->StatusColour == 0b011000) { return 1; }
+				else if (a->StatusColour == 0b010000) { if (b->StatusColour == 0b010000) { a->Name.compare(b->Name); } else { return -1; } }
+				else if (b->StatusColour == 0b010000) { return 1; }
+			}
+			
+			return 0;
+		};
+	
+	
 	
 	int sorted = 0;
 	
-	while (sorted < (int)PrinterList.size() - 1)
+	while (sorted < (int)PrinterList.size())
 	{
-		int maxima = 0;
-		for (int i = sorted; i < (int)PrinterList.size(); i++)
+		int select = sorted;
+		for (int i = sorted+1; i < (int)PrinterList.size(); i++)
 		{
-			if (sortFunc(PrinterList[i], PrinterList[maxima]) > 0)
+			if (sortFunc(PrinterList[i], PrinterList[select]) < 0)
 			{
-				maxima = i;
+				select = i;
 			}
 		}
 		
+		//moves selected elem to front of list
 		Printer *temp = PrinterList[sorted];
-		PrinterList[sorted] = PrinterList[maxima];
-		PrinterList[maxima] = temp;
+		PrinterList[sorted] = PrinterList[select];
+		PrinterList[select] = temp;
 		
 		sorted++;
 	}
@@ -468,6 +500,7 @@ void Printer::Draw(Screen *screen)
 	
 	if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000)); }
 	waddstr(Pad, ("[" + MinSize(Name, 12) + "]").c_str());
+	wattrset(Pad, COLOR_PAIR(NORMAL));
 	waddstr(Pad, "  ");
 	
 
