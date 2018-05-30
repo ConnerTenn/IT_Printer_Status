@@ -1,10 +1,10 @@
 
 #include "Printer.h"
 
-int PrinterHeight = 5;
-int PrinterWidth = 50;
-int PrinterCols = 1;
-int DisplayStyle = 1;
+//int PrinterHeight = 5;
+//int PrinterWidth = 50;
+//int PrinterCols = 1;
+//int DisplayStyle = 1;
 
 std::string Search(std::string str, std::string delim, int offset, int *i)
 {
@@ -363,81 +363,6 @@ void Printer::Draw(Screen *screen)
 {
 	wclear(Pad);
 	
-	if (DisplayStyle == 1)
-	{
-		Draw1(screen);
-	}
-	else if (DisplayStyle == 2)
-	{
-		Draw2(screen);
-	}
-}
-
-void Printer::Draw1(Screen *screen)
-{
-	wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000));
-	waddstr(Pad, " [");
-	waddstr(Pad, (Name).c_str());
-	waddstr(Pad, "]");
-	wattrset(Pad, COLOR_PAIR(NORMAL));
-	waddstr(Pad, "  ");
-	
-	wattrset(Pad, A_BOLD | COLOR_PAIR(StatusColour));
-	waddstr(Pad, (Status).c_str()); 
-	wattrset(Pad, COLOR_PAIR(NORMAL));
-	FillLine(Pad, ' '); 
-	//wattrset(pad, COLOR_PAIR(NORMAL));
-	
-	if (Status.size() && Status.find("File Error") == std::string::npos && Status.find("Network Error") == std::string::npos)
-	{
-		waddstr(Pad, "Toner ["); 
-		if (Toner <= 20) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000)); }
-		for (int i=0;i<10;i++) { waddch(Pad, i<Toner/10?ACS_CKBOARD:' '); }
-		wattrset(Pad, COLOR_PAIR(NORMAL));
-		waddstr(Pad, "]"); 
-		if (Toner <= 20) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000)); }
-		waddstr(Pad, (std::to_string(Toner) + "%").c_str()); 
-		wattrset(Pad, COLOR_PAIR(NORMAL));
-		FillLine(Pad, ' ');
-		
-		for (int i = 0; i < (int)TrayList.size(); i++)
-		{
-			const int columnOffset = 39;
-			int len = TrayList.size() - 2;
-			int x=0, y=0;
-			if (TrayList[i].Name == "Feeder")
-			{
-				y = (len-len%2)/2;
-			}
-			else if (TrayList[i].Name == "Bin   ")
-			{
-				x = columnOffset;
-				y = (len-len%2)/2;
-			}
-			else
-			{
-				x = (i >= (len-len%2)/2) * columnOffset;
-				y = (i % ((len-len%2)/2));
-			}
-			//int x = ((i >= (len-len%2)/2 && i<len-1) || ((i==len-1) && (i%2))) * 42;
-			//int y = i % ((len-len%2)/2) + (i==len-1 && !(i%2)) * (len-len%2)/2;
-			//int x=0, y=i;
-			wmove(Pad, y+2, x);
-			
-			waddstr(Pad, (TrayList[i].Name + "  ").c_str());
-			
-			if (TrayList[i].Status == "OK") { wattrset(Pad, COLOR_PAIR(0b010000)); }
-			if (TrayList[i].Status == "Low") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
-			if (TrayList[i].Status == "Empty") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
-			waddstr(Pad, (TrayList[i].Status + std::string(5-TrayList[i].Status.size(), ' ')).c_str());
-			wattrset(Pad, COLOR_PAIR(NORMAL));
-			waddstr(Pad, ("," + std::to_string(TrayList[i].Capacity) + "," + TrayList[i].PageSize + "," + TrayList[i].PageType).c_str()); FillLine(Pad, ' ');
-		}
-	}
-}
-
-void Printer::Draw2(Screen *screen)
-{
 	wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000));
 	waddstr(Pad, " [");
 	waddstr(Pad, (Name).c_str());

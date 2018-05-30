@@ -146,15 +146,15 @@ void Screen::Resize()
 #endif
 	
 	//Get Nuber of columns and width of the printer tiles
-	PrinterCols = MAX(1, Width / (MinPrinterWidth+2));
-	PrinterWidth = MAX(Width / PrinterCols - 2, MinPrinterWidth);
+	//PrinterCols = MAX(1, Width / (MinPrinterWidth+2));
+	//PrinterWidth = MAX(Width / PrinterCols - 2, MinPrinterWidth);
 	
 
 	//FIX: This implementation works but is very slow
 
 	//Recreate Pad
 	if (Pad) { delwin(Pad); }
-	Pad = newpad(MAX(((int)PrinterList.size()/PrinterCols + 1)*(PrinterHeight+1)+1, Height-2), (PrinterWidth+2)*PrinterCols);
+	Pad = newpad(MAX(((int)PrinterList.size() + 1)*(PrinterHeight+1) + 1, Height-2), MAX(PrinterWidth+2, Width+2));
 	
 	//Recreate Pads for each printer
 	for (int i = 0; Pad && i < (int)PrinterList.size(); i++)
@@ -180,11 +180,8 @@ void Screen::Draw()
 	int printerPos = 1;
 	for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
-		int x = (i % PrinterCols) * (PrinterWidth+1);
-		
-		
 		//wattrset(Pad, COLOR_PAIR(GREY));
-		Border(Pad, x, printerPos-1, x+PrinterWidth+1, printerPos+PrinterHeight);
+		Border(Pad, 0, printerPos-1, PrinterWidth+1, printerPos+PrinterHeight);
 		//wattrset(Pad, COLOR_PAIR(NORMAL));
 		
 		PrinterList[i].Mutex->lock();
@@ -192,8 +189,8 @@ void Screen::Draw()
 		PrinterList[i].Mutex->unlock();
 		//wborder(PrinterList[i].Pad, '1','2','3','4','5','6','7','8');
 		
-		mvderwin(PrinterList[i].Pad, printerPos, x+1);
-		if ((i+1)%PrinterCols == 0) { printerPos+=PrinterHeight+1; } 
+		mvderwin(PrinterList[i].Pad, printerPos, 1);
+		printerPos+=PrinterHeight + 1;
 	}
 	
 	
@@ -208,7 +205,7 @@ void Screen::Draw()
 	
 	//Bottom Text Panel
 	wattrset(stdscr, COLOR_PAIR(0b111100));
-	BottomText += "Printers:" + std::to_string(PrinterList.size()) + "  Width:" + std::to_string(Width) + "  Height:" + std::to_string(Height) + "  PrinterWidth:" + std::to_string(PrinterWidth) + "  PrinterHeight:" + std::to_string(PrinterHeight) + "  PrinterCols:" + std::to_string(PrinterCols);
+	BottomText += "Printers:" + std::to_string(PrinterList.size()) + "  Width:" + std::to_string(Width) + "  Height:" + std::to_string(Height) + "  PrinterWidth:" + std::to_string(PrinterWidth) + "  PrinterHeight:" + std::to_string(PrinterHeight);
 	mvaddstr(Height - 1, 0, BottomText.c_str()); FillLine(stdscr, ' ');
 	BottomText = "";
 	wattrset(stdscr, COLOR_PAIR(NORMAL));

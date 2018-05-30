@@ -136,21 +136,6 @@ int main()
 		{
 			screen.ScrollX+=3;
 		}
-		else if (key == 't')
-		{			
-			if (DisplayStyle == 1)
-			{
-				DisplayStyle = 2;
-				PrinterHeight = 1;
-			}
-			else if (DisplayStyle == 2)
-			{
-				DisplayStyle = 1;
-				PrinterHeight = 5;
-			}
-			
-			screen.Resize();
-		}
 	}
 
 #ifdef LINUX

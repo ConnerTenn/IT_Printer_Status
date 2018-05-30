@@ -26,12 +26,12 @@ void Replace(std::string &str, std::string find, std::string replace);
 bool First(std::string str, std::string first, std::string second, int offset = 0, int *i = 0);
 std::string MinSize(std::string str, int size);
 
-const int MinPrinterWidth = 100;//77;
-const int MaxPrinterWidth = 100;//80;
-extern int PrinterHeight; //Defined in Printer.cpp
-extern int PrinterWidth; //Defined in Printer.cpp
-extern int PrinterCols; //Defined in Printer.cpp
-extern int DisplayStyle; //Defined in Printer.cpp
+//const int MinPrinterWidth = 100;//77;
+//const int MaxPrinterWidth = 100;//80;
+const int PrinterHeight = 1; //Defined in Printer.cpp
+const int PrinterWidth = 300; //Defined in Printer.cpp
+//extern int PrinterCols; //Defined in Printer.cpp
+//extern int DisplayStyle; //Defined in Printer.cpp
 
 
 struct Tray
@@ -76,8 +76,6 @@ struct Printer
 	int Update();
 	
 	void Draw(Screen *screen);
-	void Draw1(Screen *screen);
-	void Draw2(Screen *screen);
 };
 
 #endif
