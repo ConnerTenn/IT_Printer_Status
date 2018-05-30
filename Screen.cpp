@@ -172,8 +172,8 @@ void Screen::Draw()
 	wclear(Pad);
 	
 	//Top Text Panel
-	wattrset(TopPad, COLOR_PAIR(TOPBAR));
-	waddstr(TopPad, "Name\tStatus"); FillLine(TopPad, ' ');
+	wattrset(TopPad, A_BOLD | COLOR_PAIR(0b111010));
+	waddstr(TopPad, "  Name\t\t  Status\t\t\t       Toner\t\t\tTrays"); FillLine(TopPad, ' ');
 	wattrset(TopPad, COLOR_PAIR(NORMAL));
 	
 	//Do drawing for printer grid
