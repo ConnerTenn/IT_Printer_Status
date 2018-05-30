@@ -3,12 +3,12 @@
 
 Screen *Screen::This = 0;
 
-void FillLine(char chr)
+void FillLine(int chr)
 {
 	addstr(std::string(getmaxx(stdscr)-getcurx(stdscr), chr).c_str());
 }
 
-void FillLine(WINDOW *win, char chr)
+void FillLine(WINDOW *win, int chr)
 {
 	waddstr(win, std::string(getmaxx(win)-getcurx(win), chr).c_str());
 }
@@ -114,6 +114,7 @@ Screen::~Screen()
 {	
 	delwin(TopPad); TopPad = 0;
 	delwin(Pad); Pad = 0;
+	if (Popup) { delwin(Popup); Popup = 0; delwin(PopupBorder); PopupBorder = 0;}
 	endwin();
 }
 
@@ -146,15 +147,15 @@ void Screen::Resize()
 #endif
 	
 	//Get Nuber of columns and width of the printer tiles
-	PrinterCols = MAX(1, Width / (MinPrinterWidth+2));
-	PrinterWidth = MAX(Width / PrinterCols - 2, MinPrinterWidth);
+	//PrinterCols = MAX(1, Width / (MinPrinterWidth+2));
+	//PrinterWidth = MAX(Width / PrinterCols - 2, MinPrinterWidth);
 	
 
 	//FIX: This implementation works but is very slow
 
 	//Recreate Pad
 	if (Pad) { delwin(Pad); }
-	Pad = newpad(MAX(((int)PrinterList.size()/PrinterCols + 1)*(PrinterHeight+1)+1, Height-2), (PrinterWidth+2)*PrinterCols);
+	Pad = newpad(MAX(((int)PrinterList.size() + 1)*(PrinterHeight+1) + 1, Height-2), MAX(PrinterWidth+2, Width+2));
 	
 	//Recreate Pads for each printer
 	for (int i = 0; Pad && i < (int)PrinterList.size(); i++)
@@ -162,6 +163,16 @@ void Screen::Resize()
 		if (PrinterList[i].Pad) { delwin(PrinterList[i].Pad); }
 		PrinterList[i].Pad = subpad(Pad, PrinterHeight, PrinterWidth, 0, 0);
 	}
+	
+	if (Popup)
+	{
+		delwin(Popup);
+		delwin(PopupBorder);
+		PopupBorder = subwin(stdscr, Height / 2 + 2, Width / 2 + 2, Height / 4 - 1, Width / 4 - 1);
+		Popup = subwin(stdscr, Height / 2, Width / 2, Height / 4, Width / 4);
+	}
+	
+	Scroll();
 }
 
 void Screen::Draw()
@@ -173,53 +184,197 @@ void Screen::Draw()
 	
 	//Top Text Panel
 	wattrset(TopPad, A_BOLD | COLOR_PAIR(0b111010));
-	waddstr(TopPad, "  Name\t\t  Status\t\t\t       Toner\t\t\tTrays"); FillLine(TopPad, ' ');
+	waddstr(TopPad, " Name            Status");
+	FillLine(TopPad, ' ');
 	wattrset(TopPad, COLOR_PAIR(NORMAL));
 	
 	//Do drawing for printer grid
-	int printerPos = 1;
+	int printerPos = 0;
 	for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
-		int x = (i % PrinterCols) * (PrinterWidth+1);
-		
-		
 		//wattrset(Pad, COLOR_PAIR(GREY));
-		Border(Pad, x, printerPos-1, x+PrinterWidth+1, printerPos+PrinterHeight);
+		//Border(Pad, 0, printerPos-1, PrinterWidth+1, printerPos+PrinterHeight);
 		//wattrset(Pad, COLOR_PAIR(NORMAL));
+		
+		mvderwin(PrinterList[i].Pad, printerPos, 0);
 		
 		PrinterList[i].Mutex->lock();
 		PrinterList[i].Draw(this);
 		PrinterList[i].Mutex->unlock();
 		//wborder(PrinterList[i].Pad, '1','2','3','4','5','6','7','8');
 		
-		mvderwin(PrinterList[i].Pad, printerPos, x+1);
-		if ((i+1)%PrinterCols == 0) { printerPos+=PrinterHeight+1; } 
+		printerPos+=(PrinterList[i].Expanded ? PrinterHeight : 1);
+		//if (PrinterList[i].Expanded) { exit(0); }
 	}
 	
 	
-	
-	/*move(1,1); 
-	addch(ACS_ULCORNER); addch(ACS_URCORNER); addch(ACS_LLCORNER); addch(ACS_LRCORNER); addch(ACS_PLUS);
-	move(1,1); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_ULCORNER); BottomText+=" ";
-	move(1,2); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_URCORNER); BottomText+=" ";
-	move(1,3); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_LLCORNER); BottomText+=" ";
-	move(1,4); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_LRCORNER); BottomText+=" ";
-	move(1,5); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_PLUS); BottomText+=" ";*/
-	
 	//Bottom Text Panel
 	wattrset(stdscr, COLOR_PAIR(0b111100));
-	BottomText += "Printers:" + std::to_string(PrinterList.size()) + "  Width:" + std::to_string(Width) + "  Height:" + std::to_string(Height) + "  PrinterWidth:" + std::to_string(PrinterWidth) + "  PrinterHeight:" + std::to_string(PrinterHeight) + "  PrinterCols:" + std::to_string(PrinterCols);
-	mvaddstr(Height - 1, 0, BottomText.c_str()); FillLine(stdscr, ' ');
+	wmove(stdscr, Height-1, 0);
+	
+	BottomText = std::string() + "Auto Scroll:" + (AutoScroll ? "ON " : "OFF");
+	waddstr(stdscr, BottomText.c_str()); FillLine(stdscr, ' ');
+	FillLine(stdscr, ' ');
+	BottomText = "Press H or I for Help and Info";
+	wmove(stdscr, Height-1, Width - 31);
+	waddstr(stdscr, BottomText.c_str());
+	
 	BottomText = "";
 	wattrset(stdscr, COLOR_PAIR(NORMAL));
+	
+	
+	//Scroll Bar
+	{
+		int maxY = 0;
+		for (int i = 0; i < (int)PrinterList.size(); i++)
+		{
+			maxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
+		}
+		
+		int screenMin = ScrollY;
+		int screenMax = ScrollY + Height-2;
+		
+		int barMin = (Height-2)*screenMin/MAX(maxY, Height-2);
+		int barMax = (Height-2)*screenMax/MAX(maxY, Height-2);
+		
+		wmove(stdscr, 1, Width-1);
+		wvline(stdscr, ACS_VLINE, Height-2);
+		wmove(stdscr, barMin + 1, Width-1);
+		wattrset(stdscr, COLOR_PAIR(0b111111));
+		wvline(stdscr, ACS_CKBOARD, barMax - barMin);
+		wattrset(stdscr, COLOR_PAIR(0b111111));
+	}
+	
+	if (Popup)
+	{
+		wclear(PopupBorder);
+		wclear(Popup);
+		
+		wattrset(PopupBorder, A_BOLD | COLOR_PAIR(NORMAL));
+		wborder(PopupBorder, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
+		
+		wattrset(Popup, A_BOLD | A_UNDERLINE | COLOR_PAIR(NORMAL));
+		FillLine(Popup, ' ');
+		wmove(Popup, 0, getmaxx(Popup)/2-2);
+		
+		waddstr(Popup, "Info"); 
+		
+		wmove(Popup, 1, 0);
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Created By: "); 
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Conner Tenn"); FillLine(Popup, ' ');
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Source Code availaible at:"); FillLine(Popup, ' ');
+		wattrset(Popup, A_BOLD | COLOR_PAIR(0b110000));
+		waddstr(Popup, "https://github.com/ConnerTenn/IT_Printer_Status"); FillLine(Popup, ' ');
+		
+		
+		wmove(Popup, 7, 0);
+		wattrset(Popup, A_BOLD | A_UNDERLINE | COLOR_PAIR(NORMAL));
+		FillLine(Popup, ' ');
+		wmove(Popup, 7, getmaxx(Popup)/2-5);
+		waddstr(Popup, "Help Menu"); 
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		wmove(Popup, 8, 0);
+		waddstr(Popup, "Key Bindings:"); FillLine(Popup, ' ');
+		waddstr(Popup, "A: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Auto Scroll\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "R: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Refresh Printers\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "E: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Expand/Contract All\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Enter: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Expand/Contract\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Arrow Keys: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Move Cursor and Scroll Left/Right\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Escape: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Close Program\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "H: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Toggle Help Menu");
+		
+		
+		
+	}
 	
 	
 	//Refresh display elements
 	wnoutrefresh(stdscr);
 	//touchwin(Pad);
-	pnoutrefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-1);
+	pnoutrefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-2);
 	pnoutrefresh(TopPad, 0, ScrollX,0,0,1,Width-1);
+	
+	if (Popup) { wnoutrefresh(PopupBorder); wnoutrefresh(Popup); }
 
 	//Draw update to screen. Doing this after reduces screen flicker
 	doupdate();
+	
+	if (AutoScroll)
+	{
+		if (AutoScrollDelay++ >= 5)
+		{
+			int maxY = 0;
+			for (int i = 0; i < (int)PrinterList.size(); i++)
+			{
+				maxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
+			}
+			if (ScrollY + Height - 2 >= maxY)
+			{
+				ScrollY = 0;
+			}
+			else
+			{
+				ScrollY += MIN(PrinterHeight * 4, maxY-(ScrollY+Height-2));
+			}
+			AutoScrollDelay = 0;
+		}
+	}
+	else 
+	{
+		AutoScrollDelay = 0;
+	}
+}
+
+void Screen::Scroll()
+{
+	int maxY = 0;
+	int SelectMaxY = 0;
+	int SelectMinY = 0;
+	
+	for (int i = 0; i < (int)PrinterList.size(); i++)
+	{
+		if (i <= Cursor)
+		{
+			SelectMaxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
+			if (i-1 >= 0) { SelectMinY += (PrinterList[i-1].Expanded ? PrinterHeight : 1); }
+		}
+		maxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
+	}
+	SelectMaxY -= ScrollY;
+	SelectMinY -= ScrollY;
+	
+	if (SelectMaxY > Height-2) { ScrollY += SelectMaxY - (Height-2); }
+	if (SelectMinY < 0) { ScrollY += SelectMinY; }
+	if (maxY < Height-2) { ScrollY = 0; }
 }

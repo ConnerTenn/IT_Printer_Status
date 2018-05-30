@@ -1,39 +1,12 @@
 
 //#include <iostream>
-#ifdef WINDOWS
-#include <windows.h>
-#undef MOUSE_MOVED
-#elif LINUX
-#include <unistd.h>
-#endif
+
 #include <time.h>
 //#include <stdio.h>
-#include <fstream>
 //#include <vector>
 //#include "Printer.h"
 #include "Screen.h"
 
-std::vector<Printer> PrinterList;
-
-void InitPrinters()
-{
-	std::ifstream file("Printers.txt");
-	std::string line;
-	
-	while(std::getline(file, line))
-	{
-		if (line.size())
-		{
-			PrinterList.push_back(Printer(line));
-		}
-	}
-	
-	//mutexes created after adding printers to list to handle how std::vector copying and deleting Printer object issues
-	for (int i = 0; i < (int)PrinterList.size(); i++)
-	{
-		PrinterList[i].Mutex = new std::mutex;
-	}
-}
 
 bool Run = true;
 #ifdef LINUX
@@ -45,10 +18,7 @@ void UpdatePrinters()
 {
 	while (Run)
 	{
-#ifdef WINDOWS
-		Sleep(500);
-#elif LINUX
-		sleep(1);
+#ifdef LINUX
 		PrinterLock.lock();
 #endif
 		
@@ -56,9 +26,19 @@ void UpdatePrinters()
 		{
 			PrinterList[i].Update();
 		}
+		
 #ifdef LINUX
 		PrinterLock.unlock();
 #endif
+		
+		if (Run)
+		{
+#ifdef WINDOWS
+			Sleep(500);
+#elif LINUX
+			sleep(1);
+#endif
+		}
 	}
 }
 
@@ -73,7 +53,9 @@ int main()
 #ifdef LINUX
 	Timer = 1;
 #endif
-
+	
+	if (PrinterList.size()) { Selected = &PrinterList[0]; }
+	
 	screen.Draw();
 	
 	while (Run == true)
@@ -105,7 +87,7 @@ int main()
 		
 		int key = getch();
 		
-		if (key == 27)
+		if (key == 27) //Escape
 		{
 			Run = false;
 		}
@@ -115,41 +97,71 @@ int main()
 		}
 		else if (key == 'r')
 		{
+			InitPrinters();
 			screen.Resize();
+			Timer = time(0) - 6;
+		}
+		else if (key == 'a')
+		{
+			screen.AutoScroll = !screen.AutoScroll;
+		}
+		else if (key == 'h' || key == 'i')
+		{			
+			if (!screen.Popup)
+			{
+				screen.PopupBorder = subwin(stdscr, screen.Height / 2 + 2, screen.Width / 2 + 2, screen.Height / 4 - 1, screen.Width / 4 - 1);
+				screen.Popup = subwin(screen.PopupBorder, screen.Height / 2, screen.Width / 2, screen.Height / 4, screen.Width / 4);
+			}
+			else
+			{
+				delwin(screen.Popup);
+				screen.Popup = 0;
+				delwin(screen.PopupBorder);
+				screen.PopupBorder = 0;
+			}
+		}
+		else if (key == 'e')
+		{
+			bool allExpanded = true;
+			for (int i = 0; i < (int)PrinterList.size(); i++) { allExpanded = allExpanded && PrinterList[i].Expanded; }
+			for (int i = 0; i < (int)PrinterList.size(); i++) { PrinterList[i].Expanded = !allExpanded; }
+			screen.Scroll();
 		}
 		else if (key == KEY_UP)
 		{
-			//screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
-			screen.ScrollY=MAX(screen.ScrollY-3, 0);
+			screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
+			Selected = &PrinterList[screen.Cursor];
+			//screen.ScrollY=MAX(screen.ScrollY-3, 0);
+			screen.Scroll();
+			
+			screen.AutoScroll = false;
 		}
 		else if (key == KEY_DOWN)
 		{
-			//screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
+			screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
+			Selected = &PrinterList[screen.Cursor];
 			//if ((screen.Cursor + 1) * (PrinterHeight + 1) > screen.Height + screen.ScrollY) { screen.ScrollY+=PrinterHeight; }
-			screen.ScrollY+=3;
+			//screen.ScrollY+=3;
+			screen.Scroll();
+			
+			screen.AutoScroll = false;
+		}
+		else if (key == 10) //Enter Key
+		{
+			Selected->Expanded = !Selected->Expanded;
+			screen.Scroll();
+			
+			screen.AutoScroll = false;
 		}
 		else if (key == KEY_LEFT)
 		{
 			screen.ScrollX=MAX(screen.ScrollX-3, 0);
+			screen.AutoScrollDelay = (screen.AutoScrollDelay > 0 ? screen.AutoScrollDelay - 1 : 0);
 		}
 		else if (key == KEY_RIGHT)
 		{
 			screen.ScrollX+=3;
-		}
-		else if (key == 't')
-		{			
-			if (DisplayStyle == 1)
-			{
-				DisplayStyle = 2;
-				PrinterHeight = 1;
-			}
-			else if (DisplayStyle == 2)
-			{
-				DisplayStyle = 1;
-				PrinterHeight = 5;
-			}
-			
-			screen.Resize();
+			screen.AutoScrollDelay = (screen.AutoScrollDelay > 0 ? screen.AutoScrollDelay - 1 : 0);
 		}
 	}
 

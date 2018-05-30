@@ -1,10 +1,37 @@
 
 #include "Printer.h"
 
-int PrinterHeight = 5;
-int PrinterWidth = 50;
-int PrinterCols = 1;
-int DisplayStyle = 1;
+
+std::vector<Printer> PrinterList;
+Printer *Selected = 0;
+int MaxStatusLength = 0;
+
+void InitPrinters()
+{
+	PrinterList.clear();
+	
+	std::ifstream file("Printers.txt");
+	std::string line;
+	
+	while(std::getline(file, line))
+	{
+		if (line.size())
+		{
+			PrinterList.push_back(Printer(line));
+		}
+	}
+	
+	//mutexes created after adding printers to list to handle how std::vector copying and deleting Printer object issues
+	for (int i = 0; i < (int)PrinterList.size(); i++)
+	{
+		PrinterList[i].Mutex = new std::mutex;
+	}
+}
+
+void SortPrinters()
+{
+	
+}
 
 std::string Search(std::string str, std::string delim, int offset, int *i)
 {
@@ -93,50 +120,15 @@ void Replace(std::string &str, std::string find, std::string replace)
 	}
 }
 
-bool First(std::string str, std::string first, std::string second, int offset, int *i)
-{
-	int s = 0, f1 = 0, f2 = 0;
-	bool incr = true;
+int First(std::string str, std::string first, std::string second, int offset, int *i)
+{	
+	size_t s1 = str.find(first, offset);
+	size_t s2 = str.find(second, offset);
 	
-	while (s < (int)str.size())
-	{
-		incr = true;
-		
-		if (str[s] == first[f2])
-		{
-			//incr = true && incr;
-			f1++;
-		}
-		else
-		{
-			if (f1 != 0) { f1 = 0; incr = false; }
-		}
-		
-		if (str[s] == second[f2])
-		{
-			//incr = true && incr;
-			f2++;
-		}
-		else
-		{
-			if (f2 != 0) { f2 = 0; incr = false; }
-		}
-		
-		if (f1 >= (int)first.size())
-		{
-			*i = s;
-			return true;
-		}
-		if (f2 >= (int)second.size())
-		{
-			*i = s;
-			return true;
-		}
-		
-		if (incr) { s++; }
-	}
+	if (s1 == std::string::npos && s2 == std::string::npos) { return -1; }
 	
-	return -1;
+	if (i) { *i = MIN(s1, s2); }
+	return (s1 <= s2 ? 1 : 0);
 }
 
 std::string MinSize(std::string str, int size)
@@ -148,6 +140,9 @@ std::string MaxSize(std::string str, int size)
 {
 	return str.substr(0, MIN(size, (int)str.size()));
 }
+
+
+
 
 Printer::Printer() : Printer("") {}
 Printer::Printer(std::string name) : Name(name) {}
@@ -165,17 +160,19 @@ void Printer::GetStatus()
 		Buffer = "";
 		int offset = 0;
 		Buffer += Search(HtmlTopBar, "<td*class=\"statusLine\"*>*>@<", offset, &offset);
-		Buffer += " ";
-		Buffer += Search(HtmlTopBar, "<td*class=\"statusLine\"*>*>@<", offset);
-		
 		Replace(Buffer, "&#032;&#032;", "");
 		Replace(Buffer, "&#032;", " ");
-		Buffer += "";
+		Buffer = MinSize(Buffer, 13);
+		
+		Buffer += Search(HtmlTopBar, "<td*class=\"statusLine\"*>*>@<", offset);
+		Replace(Buffer, "&#032;&#032;", "");
+		Replace(Buffer, "&#032;", " ");
+		//Buffer += "";
 		
 		std::string colour = Search(HtmlTopBar, "<table*bgcolor=\"@\"");
 		if (colour == "#F8F8F8")
 		{
-			StatusColour = 0b111000;
+			StatusColour = 0b010000;
 		}
 		else if (colour == "#FFFF66")
 		{
@@ -183,17 +180,23 @@ void Printer::GetStatus()
 		}
 	}
 	
+	{
+		int offset = 0;
+		Model = Search(HtmlTopBar, "<span class=\"top_prodname\">@<", offset, &offset);
+		Address = Search(HtmlTopBar, "Address: @<", offset, &offset);
+		ContactName = Search(HtmlTopBar, "Contact Name: @<", offset, &offset);
+	}
+	
 	Mutex->lock();
 	Status = Buffer;
 	
 	{
 		int offset = 0;
-		
+		std::string in;
 		
 		Toner = stoi(Search(HtmlStatus, "Black*~@%"));
 		
 		TrayList.clear();
-		std::string in;
 		
 		bool doTray = true;
 		while (doTray)
@@ -211,18 +214,18 @@ void Printer::GetStatus()
 				TrayList.back().Status = in;
 				
 				
-				if (First(HtmlStatus, "<TD>", "<TR>", offset) == true)
+				if (First(HtmlStatus, "<TD>", "<TR>", offset) == 1)
 				{
 					in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
 					TrayList.back().Capacity = stoi(in);
 					
-					if (First(HtmlStatus, "<TD>", "<TR>", offset) == true)
+					if (First(HtmlStatus, "<TD>", "<TR>", offset) == 1)
 					{
 						in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
 						in = MinSize(in, 6);
 						TrayList.back().PageSize = in;
 						
-						if (First(HtmlStatus, "<TD>", "<TR>", offset) == true)
+						if (First(HtmlStatus, "<TD>", "<TR>", offset) == 1)
 						{
 							in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
 							Replace(in, "&nbsp;", " ");
@@ -239,9 +242,40 @@ void Printer::GetStatus()
 			
 		}
 		
+		{
+			int offset = 0;
+			std::string in;
+			
+			KitList.clear();
+			
+			Search(HtmlStatus, "Toner Cartridge Capacity", offset, &offset);
+			
+			bool doKit = true;
+			while (doKit)
+			{
+				if (First(HtmlStatus, "<TD><B>", "</table>", offset) == 1)
+				{
+					in = Search(HtmlStatus, "<TD><B>@<", offset, &offset);
+					Replace(in, " Life Remaining", "");
+					KitList.push_back(Kit());
+					
+					KitList.back().Name = in;
+					
+					in = Search(HtmlStatus, "</TD><TD>@%", offset, &offset);
+					KitList.back().LifeRemaining = stoi(in);
+				}
+				else
+				{
+					doKit = false;
+				}
+			}
+		}
+		
 		if (Toner == 0 && StatusColour == 0b111000 ) { StatusColour = 0b011000; }
 		
 		Mutex->unlock();
+		
+		MaxStatusLength = MAX(MaxStatusLength, (int)Status.size());
 	}
 }
 
@@ -370,118 +404,93 @@ int Printer::Update()
 
 void Printer::Draw(Screen *screen)
 {
+	int TonerStart = MaxStatusLength + 19;
+	int TrayStart = TonerStart + 26;
+	
 	wclear(Pad);
 	
-	if (DisplayStyle == 1)
-	{
-		Draw1(screen);
-	}
-	else if (DisplayStyle == 2)
-	{
-		Draw2(screen);
-	}
-}
-
-void Printer::Draw1(Screen *screen)
-{
-	wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000));
-	waddstr(Pad, " [");
-	waddstr(Pad, (Name).c_str());
-	waddstr(Pad, "]");
-	wattrset(Pad, COLOR_PAIR(NORMAL));
+	if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); }
+	if (Expanded) { waddch(Pad, ACS_ULCORNER); } else { waddch(Pad, ACS_HLINE ); }
+	
+	if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000)); }
+	waddstr(Pad, ("[" + MinSize(Name, 12) + "]").c_str());
 	waddstr(Pad, "  ");
 	
-	if (Status.size() > 36) { Status = MaxSize(Status, 36-3) + "..."; }
-	wattrset(Pad, A_BOLD | COLOR_PAIR(StatusColour));
-	waddstr(Pad, (Status).c_str()); 
-	wattrset(Pad, COLOR_PAIR(NORMAL));
-	FillLine(Pad, ' '); 
-	//wattrset(pad, COLOR_PAIR(NORMAL));
-	
-	if (Status.size() && Status.find("File Error") == std::string::npos && Status.find("Network Error") == std::string::npos)
-	{
-		waddstr(Pad, "Toner ["); 
-		if (Toner <= 20) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000)); }
-		for (int i=0;i<10;i++) { waddch(Pad, i<Toner/10?ACS_CKBOARD:' '); }
-		wattrset(Pad, COLOR_PAIR(NORMAL));
-		waddstr(Pad, "]"); 
-		if (Toner <= 20) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000)); }
-		waddstr(Pad, (std::to_string(Toner) + "%").c_str()); 
-		wattrset(Pad, COLOR_PAIR(NORMAL));
-		FillLine(Pad, ' ');
-		
-		for (int i = 0; i < (int)TrayList.size(); i++)
-		{
-			const int columnOffset = 39;
-			int len = TrayList.size() - 2;
-			int x=0, y=0;
-			if (TrayList[i].Name == "Feeder")
-			{
-				y = (len-len%2)/2;
-			}
-			else if (TrayList[i].Name == "Bin   ")
-			{
-				x = columnOffset;
-				y = (len-len%2)/2;
-			}
-			else
-			{
-				x = (i >= (len-len%2)/2) * columnOffset;
-				y = (i % ((len-len%2)/2));
-			}
-			//int x = ((i >= (len-len%2)/2 && i<len-1) || ((i==len-1) && (i%2))) * 42;
-			//int y = i % ((len-len%2)/2) + (i==len-1 && !(i%2)) * (len-len%2)/2;
-			//int x=0, y=i;
-			wmove(Pad, y+2, x);
-			
-			waddstr(Pad, (TrayList[i].Name + "  ").c_str());
-			
-			if (TrayList[i].Status == "OK") { wattrset(Pad, COLOR_PAIR(0b010000)); }
-			if (TrayList[i].Status == "Low") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
-			if (TrayList[i].Status == "Empty") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
-			waddstr(Pad, (TrayList[i].Status + std::string(5-TrayList[i].Status.size(), ' ')).c_str());
-			wattrset(Pad, COLOR_PAIR(NORMAL));
-			waddstr(Pad, ("," + std::to_string(TrayList[i].Capacity) + "," + TrayList[i].PageSize + "," + TrayList[i].PageType).c_str()); FillLine(Pad, ' ');
-		}
-	}
-}
 
-void Printer::Draw2(Screen *screen)
-{
-	wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000));
-	waddstr(Pad, " [");
-	waddstr(Pad, (Name).c_str());
-	waddstr(Pad, "]");
-	wattrset(Pad, COLOR_PAIR(NORMAL));
-	waddstr(Pad, "  ");
-	
+	//if (Status.size() > StatusLen) { Status = MaxSize(Status, StatusLen-3) + "..."; }
 	wattrset(Pad, A_BOLD | COLOR_PAIR(StatusColour));
 	waddstr(Pad, (Status).c_str()); 
-	wattrset(Pad, COLOR_PAIR(NORMAL));
+	//wattrset(Pad, COLOR_PAIR(NORMAL));
 	waddstr(Pad, "  "); 
 	
-	wmove(Pad, 0, 54);
+	wmove(Pad, 0, TonerStart);
 	
+	bool noError = Status.size() && Status.find("File Error") == std::string::npos && Status.find("Network Error") == std::string::npos;
 	
-	if (Status.size() && Status.find("File Error") == std::string::npos && Status.find("Network Error") == std::string::npos)
+	if (noError)
 	{
 		if (Toner == 0) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } else if (Toner <= 20) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000)); }
 		waddstr(Pad, "Toner ["); 
 		for (int i=0;i<10;i++) { waddch(Pad, i<Toner/10?ACS_CKBOARD:' '); }
 		waddstr(Pad, "]");
-		waddstr(Pad, MinSize("~" + std::to_string(Toner) + "% ", 7).c_str()); 
-		wattrset(Pad, COLOR_PAIR(NORMAL));
+		waddstr(Pad, MinSize("~" + std::to_string(Toner) + "%", 6).c_str()); 
+		
+		
+		wattrset(Pad, (Selected == this ? A_BOLD : 0) | COLOR_PAIR(NORMAL));
 			
+		wmove(Pad, 0, TrayStart);
 		for (int i = 0; i < (int)TrayList.size(); i++)
 		{
 			
 			waddstr(Pad, (TrayList[i].Name + "  ").c_str());
 				
 			if (TrayList[i].Status == "OK") { wattrset(Pad, COLOR_PAIR(0b010000)); }
-			if (TrayList[i].Status == "Low") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
-			if (TrayList[i].Status == "Empty") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
-			waddstr(Pad, (TrayList[i].Status + std::string(6-TrayList[i].Status.size(), ' ')).c_str());
-			wattrset(Pad, COLOR_PAIR(NORMAL));
+			else if (TrayList[i].Status == "Low") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
+			else /*if (TrayList[i].Status == "Empty")*/ { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
+			waddstr(Pad, MinSize(TrayList[i].Status, 6).c_str());
+			wattrset(Pad, (Selected == this ? A_BOLD : 0) | COLOR_PAIR(NORMAL));
+		}
+	}
+	
+	
+	if (Expanded)
+	{
+		wmove(Pad, 1, 0);
+		if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); }
+		wvline(Pad, ACS_VLINE, 4);
+		wattrset(Pad, (Selected == this ? A_BOLD : 0) | COLOR_PAIR(NORMAL));
+			
+		if (noError)
+		{
+			wmove(Pad, 1, 1);
+			waddstr(Pad, ("Model:       "+Model).c_str());
+			
+			wmove(Pad, 2, 1);
+			waddstr(Pad, ("Address:     "+Address).c_str());
+			
+			wmove(Pad, 3, 1);
+			waddstr(Pad, ("ContactName: "+ContactName).c_str());
+			
+			for (int i = 0; i < (int)KitList.size(); i++)
+			{
+				wmove(Pad, i+1, 34);
+				waddstr(Pad, (MinSize(KitList[i].Name, 17) + std::to_string( KitList[i].LifeRemaining) + "%").c_str());
+			}
+			
+			
+			for (int i = 0, x = 0; i < (int)TrayList.size(); i++)
+			{
+				wmove(Pad, 1, TrayStart + x);
+				waddstr(Pad, std::to_string(TrayList[i].Capacity).c_str());
+				
+				wmove(Pad, 2, TrayStart + x);
+				waddstr(Pad, TrayList[i].PageSize.c_str());
+				
+				wmove(Pad, 3, TrayStart + x);
+				waddstr(Pad, TrayList[i].PageType.c_str());
+				
+				x+= TrayList[i].Name.size() + 6 + 2;
+			}
 		}
 	}
 }	

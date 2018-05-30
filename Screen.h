@@ -35,8 +35,8 @@ enum Colours
 	GREY = 64,
 };
 
-void FillLine(char chr);
-void FillLine(WINDOW *win, char chr);
+void FillLine(int chr);
+void FillLine(WINDOW *win, int chr);
 /* Warning, Do No Use; Cursor does not get updated before function call. If used concatinated with other characters to print a full line, will result in extra characters.
 std::string GetFullLine(char chr);
 std::string GetFullLine(WINDOW *win, char chr);*/
@@ -46,14 +46,18 @@ struct Screen
 {
 	int Width, Height;
 	static Screen *This;
-	//int Cursor = 0;
+	int Cursor = 0;
 	int ScrollX = 0, ScrollY = 0;
+	bool AutoScroll = false;
+	int AutoScrollDelay = 0;
 	
 	std::string BottomText;
 	
 	WINDOW *TopPad = 0;
 	WINDOW *Pad = 0;
 	WINDOW *Debug = 0;
+	WINDOW *PopupBorder = 0;
+	WINDOW *Popup = 0;
 	
 	Screen();
 	~Screen();
@@ -63,6 +67,8 @@ struct Screen
 	void Resize();
 	
 	void Draw();
+	
+	void Scroll();
 };
 
 #endif

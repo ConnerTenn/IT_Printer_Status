@@ -8,8 +8,11 @@ struct Printer;
 #ifdef WINDOWS
 #include <windows.h>
 #undef MOUSE_MOVED
+#elif LINUX
+#include <unistd.h>
 #endif
 
+#include <fstream>
 #include <string>
 #include <curl/curl.h>
 #ifdef WINDOWS
@@ -21,18 +24,20 @@ struct Printer;
 #include <mutex>
 #include "Screen.h"
 
+extern std::vector<Printer> PrinterList; //Defined in Printer.cpp
+const int PrinterHeight = 5; 
+const int PrinterWidth = 300; 
+extern Printer *Selected; //Defined in Printer.cpp
+extern int MaxStatusLength; //Defined in Printer.cpp
+
+
+void InitPrinters();
+void SortPrinters();
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);
-bool First(std::string str, std::string first, std::string second, int offset = 0, int *i = 0);
+int First(std::string str, std::string first, std::string second, int offset = 0, int *i = 0);
 std::string MinSize(std::string str, int size);
 std::string MaxSize(std::string str, int size);
-
-const int MinPrinterWidth = 100;//77;
-const int MaxPrinterWidth = 100;//80;
-extern int PrinterHeight; //Defined in Printer.cpp
-extern int PrinterWidth; //Defined in Printer.cpp
-extern int PrinterCols; //Defined in Printer.cpp
-extern int DisplayStyle; //Defined in Printer.cpp
 
 
 struct Tray
@@ -44,17 +49,32 @@ struct Tray
 	std::string PageType;
 };
 
+struct Kit
+{
+	std::string Name;
+	int LifeRemaining = 0;
+};
+
 struct Printer
 {
 	std::string Name;
+	std::string Model;
+	std::string Address;
+	std::string ContactName;;
+	
+	std::string MaintenanceKit;
+	std::string PCKit;
+	
+	std::string Buffer;
 	std::string HtmlTopBar;
 	std::string HtmlStatus;
 	std::string Status;
-	std::string Buffer;
+	
 	char StatusColour = 0;
 	bool Expanded = false;
 	
 	std::vector<Tray> TrayList;
+	std::vector<Kit> KitList;
 	
 	int Toner = 0;
 	
@@ -77,8 +97,6 @@ struct Printer
 	int Update();
 	
 	void Draw(Screen *screen);
-	void Draw1(Screen *screen);
-	void Draw2(Screen *screen);
 };
 
 #endif
