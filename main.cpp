@@ -82,7 +82,8 @@ int main()
 		}
 		//printf("%d\n", time(0) - Time1);
 #endif
-
+		
+		SortPrinters();
 		screen.Draw();
 		
 		int key = getch();
