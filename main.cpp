@@ -56,6 +56,7 @@ void UpdatePrinters()
 		{
 			PrinterList[i].Update();
 		}
+		
 #ifdef LINUX
 		PrinterLock.unlock();
 #endif
@@ -73,7 +74,9 @@ int main()
 #ifdef LINUX
 	Timer = 1;
 #endif
-
+	
+	if (PrinterList.size()) { Selected = &PrinterList[0]; }
+	
 	screen.Draw();
 	
 	while (Run == true)
@@ -105,7 +108,7 @@ int main()
 		
 		int key = getch();
 		
-		if (key == 27)
+		if (key == 27) //Escape
 		{
 			Run = false;
 		}
@@ -119,14 +122,20 @@ int main()
 		}
 		else if (key == KEY_UP)
 		{
-			//screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
-			screen.ScrollY=MAX(screen.ScrollY-3, 0);
+			screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
+			Selected = &PrinterList[screen.Cursor];
+			//screen.ScrollY=MAX(screen.ScrollY-3, 0);
 		}
 		else if (key == KEY_DOWN)
 		{
-			//screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
+			screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
+			Selected = &PrinterList[screen.Cursor];
 			//if ((screen.Cursor + 1) * (PrinterHeight + 1) > screen.Height + screen.ScrollY) { screen.ScrollY+=PrinterHeight; }
-			screen.ScrollY+=3;
+			//screen.ScrollY+=3;
+		}
+		else if (key == 10) //Enter Key
+		{
+			Selected->Expanded = !Selected->Expanded;
 		}
 		else if (key == KEY_LEFT)
 		{

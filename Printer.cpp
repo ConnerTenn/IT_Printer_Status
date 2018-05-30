@@ -5,6 +5,7 @@
 //int PrinterWidth = 50;
 //int PrinterCols = 1;
 //int DisplayStyle = 1;
+Printer *Selected = 0;
 
 std::string Search(std::string str, std::string delim, int offset, int *i)
 {
@@ -372,12 +373,13 @@ void Printer::Draw(Screen *screen)
 {
 	wclear(Pad);
 	
-	if (Expanded) { waddch(Pad, '-'); } else { waddch(Pad, '+'); }
+	if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); }
+	if (Expanded) { waddch(Pad, ACS_ULCORNER); } else { waddch(Pad, ACS_HLINE ); }
 	
-	wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000));
-	waddstr(Pad, "[");
-	waddstr(Pad, (Name).c_str());
-	waddstr(Pad, "]");
+	if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000)); }
+	//waddstr(Pad, "[");
+	waddstr(Pad, ("[" + Name + "]").c_str());
+	//waddstr(Pad, "]");
 	wattrset(Pad, COLOR_PAIR(NORMAL));
 	waddstr(Pad, "  ");
 	
@@ -410,6 +412,15 @@ void Printer::Draw(Screen *screen)
 			waddstr(Pad, (TrayList[i].Status + std::string(6-TrayList[i].Status.size(), ' ')).c_str());
 			wattrset(Pad, COLOR_PAIR(NORMAL));
 		}
+	}
+	
+	if (Expanded)
+	{
+		wmove(Pad, 1, 0);
+		wvline(Pad, ACS_VLINE, 4);
+		
+		wmove(Pad, 1, 1);
+		
 	}
 }	
 	

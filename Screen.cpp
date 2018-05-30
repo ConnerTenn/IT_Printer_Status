@@ -177,20 +177,22 @@ void Screen::Draw()
 	wattrset(TopPad, COLOR_PAIR(NORMAL));
 	
 	//Do drawing for printer grid
-	int printerPos = 1;
+	int printerPos = 0;
 	for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
 		//wattrset(Pad, COLOR_PAIR(GREY));
-		Border(Pad, 0, printerPos-1, PrinterWidth+1, printerPos+PrinterHeight);
+		//Border(Pad, 0, printerPos-1, PrinterWidth+1, printerPos+PrinterHeight);
 		//wattrset(Pad, COLOR_PAIR(NORMAL));
+		
+		mvderwin(PrinterList[i].Pad, printerPos, 0);
 		
 		PrinterList[i].Mutex->lock();
 		PrinterList[i].Draw(this);
 		PrinterList[i].Mutex->unlock();
 		//wborder(PrinterList[i].Pad, '1','2','3','4','5','6','7','8');
 		
-		mvderwin(PrinterList[i].Pad, printerPos, 1);
-		printerPos+=PrinterHeight + 1;
+		printerPos+=(PrinterList[i].Expanded ? PrinterHeight : 1);
+		//if (PrinterList[i].Expanded) { exit(0); }
 	}
 	
 	

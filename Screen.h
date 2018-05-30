@@ -46,7 +46,7 @@ struct Screen
 {
 	int Width, Height;
 	static Screen *This;
-	//int Cursor = 0;
+	int Cursor = 0;
 	int ScrollX = 0, ScrollY = 0;
 	
 	std::string BottomText;

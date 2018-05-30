@@ -29,10 +29,11 @@ std::string MaxSize(std::string str, int size);
 
 //const int MinPrinterWidth = 100;//77;
 //const int MaxPrinterWidth = 100;//80;
-const int PrinterHeight = 1; //Defined in Printer.cpp
+const int PrinterHeight = 5; //Defined in Printer.cpp
 const int PrinterWidth = 300; //Defined in Printer.cpp
 //extern int PrinterCols; //Defined in Printer.cpp
 //extern int DisplayStyle; //Defined in Printer.cpp
+extern Printer *Selected; //Defined in Printer.cpp
 
 
 struct Tray
