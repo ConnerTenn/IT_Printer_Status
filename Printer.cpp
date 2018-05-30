@@ -139,6 +139,15 @@ bool First(std::string str, std::string first, std::string second, int offset, i
 	return -1;
 }
 
+std::string MinSize(std::string str, int size)
+{
+	return str + std::string(MAX(size-(int)str.size(), 0), ' ');
+}
+
+std::string MaxSize(std::string str, int size)
+{
+	return str.substr(0, MIN(size, (int)str.size()));
+}
 
 Printer::Printer() : Printer("") {}
 Printer::Printer(std::string name) : Name(name) {}
@@ -210,7 +219,7 @@ void Printer::GetStatus()
 					if (First(HtmlStatus, "<TD>", "<TR>", offset) == true)
 					{
 						in = Search(HtmlStatus, "<TD><P style=\"margin-left:5\">@<", offset, &offset);
-						in += std::string(MAX(6-(int)in.size(), 0), ' ');
+						in = MinSize(in, 6);
 						TrayList.back().PageSize = in;
 						
 						if (First(HtmlStatus, "<TD>", "<TR>", offset) == true)
@@ -222,8 +231,6 @@ void Printer::GetStatus()
 					}
 				}
 				
-				
-				
 			}
 			else
 			{
@@ -232,6 +239,8 @@ void Printer::GetStatus()
 			
 		}
 		
+		if (Toner == 0 && StatusColour == 0b111000 ) { StatusColour = 0b011000; }
+		
 		Mutex->unlock();
 	}
 }
@@ -239,13 +248,13 @@ void Printer::GetStatus()
 std::string Printer::GetUrlTopbar()
 {
 	//return "http://v4.ifconfig.co";
-	return "br-" + Name + ".internal/cgi-bin/dynamic/topbar.html";
+	return Name + ".internal/cgi-bin/dynamic/topbar.html";
 }
 
 std::string Printer::GetUrlStatus()
 {
 	//return "http://v4.ifconfig.co";
-	return "br-" + Name + ".internal/cgi-bin/dynamic/printer/PrinterStatus.html";
+	return Name + ".internal/cgi-bin/dynamic/printer/PrinterStatus.html";
 }
 
 size_t Printer::WriteCallback(void* buf, size_t size, size_t nmemb, void* userp)
@@ -382,6 +391,7 @@ void Printer::Draw1(Screen *screen)
 	wattrset(Pad, COLOR_PAIR(NORMAL));
 	waddstr(Pad, "  ");
 	
+	if (Status.size() > 36) { Status = MaxSize(Status, 36-3) + "..."; }
 	wattrset(Pad, A_BOLD | COLOR_PAIR(StatusColour));
 	waddstr(Pad, (Status).c_str()); 
 	wattrset(Pad, COLOR_PAIR(NORMAL));
@@ -450,16 +460,17 @@ void Printer::Draw2(Screen *screen)
 	wattrset(Pad, COLOR_PAIR(NORMAL));
 	waddstr(Pad, "  "); 
 	
-	wmove(Pad, 0, 50);
+	wmove(Pad, 0, 54);
 	
 	
 	if (Status.size() && Status.find("File Error") == std::string::npos && Status.find("Network Error") == std::string::npos)
 	{
+		if (Toner == 0) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } else if (Toner <= 20) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000)); }
 		waddstr(Pad, "Toner ["); 
-		if (Toner <= 20) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000)); }
 		for (int i=0;i<10;i++) { waddch(Pad, i<Toner/10?ACS_CKBOARD:' '); }
+		waddstr(Pad, "]");
+		waddstr(Pad, MinSize("~" + std::to_string(Toner) + "% ", 7).c_str()); 
 		wattrset(Pad, COLOR_PAIR(NORMAL));
-		waddstr(Pad, "]  "); 
 			
 		for (int i = 0; i < (int)TrayList.size(); i++)
 		{
