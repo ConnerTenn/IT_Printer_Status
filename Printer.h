@@ -24,6 +24,7 @@ struct Printer;
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);
 bool First(std::string str, std::string first, std::string second, int offset = 0, int *i = 0);
+std::string MinSize(std::string str, int size);
 
 const int MinPrinterWidth = 100;//77;
 const int MaxPrinterWidth = 100;//80;

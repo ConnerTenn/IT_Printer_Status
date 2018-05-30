@@ -153,21 +153,22 @@ Printer::~Printer()
 void Printer::GetStatus()
 {
 	{
-		Buffer = "\"";
+		Buffer = "";
 		int offset = 0;
 		Buffer += Search(HtmlTopBar, "<td*class=\"statusLine\"*>*>@<", offset, &offset);
-		Buffer += ", ";
+		Buffer += " ";
 		Buffer += Search(HtmlTopBar, "<td*class=\"statusLine\"*>*>@<", offset);
 		
 		Replace(Buffer, "&#032;&#032;", "");
 		Replace(Buffer, "&#032;", " ");
-		Buffer += "\"";
+		Buffer += "";
 		
-		if (Search(HtmlTopBar, "<table*bgcolor=\"@\"") == "#FFFFFF")
+		std::string colour = Search(HtmlTopBar, "<table*bgcolor=\"@\"");
+		if (colour == "#F8F8F8")
 		{
 			StatusColour = 0b111000;
 		}
-		else if (Search(HtmlTopBar, "<table*bgcolor=\"@\"") == "#FFFF66")
+		else if (colour == "#FFFF66")
 		{
 			StatusColour = 0b011000;
 		}
@@ -276,10 +277,9 @@ int Printer::Update()
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1);
 	Buffer.clear();
-	//if (Search(HtmlTopBar, "<html class=\"top_bar\">") == "-1") { res = CURLE_RECV_ERROR; }
 	res = curl_easy_perform(curl);
 	HtmlTopBar = Buffer;
-	
+	if (HtmlTopBar.find("<html class=\"top_bar\">") == std::string::npos) { res = CURLE_RECV_ERROR; }
 	if (res != CURLE_OK) { Status = "Network Error:" + std::to_string(res); StatusColour = 0b001000; }
 	
 	curl_easy_setopt(curl, CURLOPT_URL, GetUrlStatus().c_str());
@@ -290,7 +290,7 @@ int Printer::Update()
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1);
 	Buffer.clear();
 	res = (res?res:curl_easy_perform(curl));
-	//if (Search(HtmlStatus, "<title>Printer Status</title>") == "-1") { res = CURLE_RECV_ERROR; }
+	if (HtmlTopBar.find("<html class=\"top_bar\">") == std::string::npos) { res = CURLE_RECV_ERROR; }
 	if (res != CURLE_OK) { Status = "Network Error:" + std::to_string(res); StatusColour = 0b001000; }
 	HtmlStatus = Buffer;
 
@@ -322,6 +322,8 @@ int Printer::Update()
 		//printf("%d\n", size);
 		delete[] buff;
 		
+		if (Search(HtmlTopBar, "<html class=\"top_bar\">") == "-1") { res = 0; }
+		
 		res = 1;
 	}
 	
@@ -340,6 +342,8 @@ int Printer::Update()
 		HtmlStatus = std::string(buff);
 		//printf("%d\n", size);
 		delete[] buff;
+		
+		if (Search(HtmlStatus, "<title>Printer Status</title>") == "-1") { res = 0; }
 	}
 		
 	if (!res)
@@ -384,7 +388,7 @@ void Printer::Draw1(Screen *screen)
 	FillLine(Pad, ' '); 
 	//wattrset(pad, COLOR_PAIR(NORMAL));
 	
-	if (Status.size() && Status != "Network Error")
+	if (Status.size() && Status.find("File Error") == std::string::npos && Status.find("Network Error") == std::string::npos)
 	{
 		waddstr(Pad, "Toner ["); 
 		if (Toner <= 20) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000)); }
@@ -447,15 +451,27 @@ void Printer::Draw2(Screen *screen)
 	waddstr(Pad, "  "); 
 	
 	wmove(Pad, 0, 50);
-	for (int i = 0; i < (int)TrayList.size(); i++)
+	
+	
+	if (Status.size() && Status.find("File Error") == std::string::npos && Status.find("Network Error") == std::string::npos)
 	{
-		waddstr(Pad, (TrayList[i].Name + "  ").c_str());
+		waddstr(Pad, "Toner ["); 
+		if (Toner <= 20) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000)); }
+		for (int i=0;i<10;i++) { waddch(Pad, i<Toner/10?ACS_CKBOARD:' '); }
+		wattrset(Pad, COLOR_PAIR(NORMAL));
+		waddstr(Pad, "]  "); 
 			
+		for (int i = 0; i < (int)TrayList.size(); i++)
+		{
+			
+			waddstr(Pad, (TrayList[i].Name + "  ").c_str());
+				
 			if (TrayList[i].Status == "OK") { wattrset(Pad, COLOR_PAIR(0b010000)); }
 			if (TrayList[i].Status == "Low") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
 			if (TrayList[i].Status == "Empty") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
 			waddstr(Pad, (TrayList[i].Status + std::string(6-TrayList[i].Status.size(), ' ')).c_str());
 			wattrset(Pad, COLOR_PAIR(NORMAL));
+		}
 	}
 }	
 	

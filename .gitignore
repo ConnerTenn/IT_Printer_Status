@@ -5,6 +5,8 @@
 .vscode/
 .vs/
 
+DownloadPrinters.sh
+
 *.o
 *.obj
 *.pch
