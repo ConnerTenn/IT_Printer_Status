@@ -3,12 +3,12 @@
 
 Screen *Screen::This = 0;
 
-void FillLine(char chr)
+void FillLine(int chr)
 {
 	addstr(std::string(getmaxx(stdscr)-getcurx(stdscr), chr).c_str());
 }
 
-void FillLine(WINDOW *win, char chr)
+void FillLine(WINDOW *win, int chr)
 {
 	waddstr(win, std::string(getmaxx(win)-getcurx(win), chr).c_str());
 }
@@ -162,6 +162,8 @@ void Screen::Resize()
 		if (PrinterList[i].Pad) { delwin(PrinterList[i].Pad); }
 		PrinterList[i].Pad = subpad(Pad, PrinterHeight, PrinterWidth, 0, 0);
 	}
+	
+	Scroll();
 }
 
 void Screen::Draw()
@@ -207,18 +209,89 @@ void Screen::Draw()
 	
 	//Bottom Text Panel
 	wattrset(stdscr, COLOR_PAIR(0b111100));
-	BottomText += "Printers:" + std::to_string(PrinterList.size()) + "  Width:" + std::to_string(Width) + "  Height:" + std::to_string(Height) + "  PrinterWidth:" + std::to_string(PrinterWidth) + "  PrinterHeight:" + std::to_string(PrinterHeight);
+	BottomText += "Printers:" + std::to_string(PrinterList.size()) + "  Auto Scroll:" + std::to_string(AutoScroll);
 	mvaddstr(Height - 1, 0, BottomText.c_str()); FillLine(stdscr, ' ');
 	BottomText = "";
 	wattrset(stdscr, COLOR_PAIR(NORMAL));
 	
 	
+	//Scroll Bar
+	{
+		int maxY = 0;
+		for (int i = 0; i < (int)PrinterList.size(); i++)
+		{
+			maxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
+		}
+		
+		int screenMin = ScrollY;
+		int screenMax = ScrollY + Height-2;
+		
+		int barMin = (Height-2)*screenMin/MAX(maxY, Height-2);
+		int barMax = (Height-2)*screenMax/MAX(maxY, Height-2);
+		
+		wmove(stdscr, 1, Width-1);
+		wvline(stdscr, ACS_VLINE, Height-2);
+		wmove(stdscr, barMin + 1, Width-1);
+		wattrset(stdscr, COLOR_PAIR(0b111111));
+		wvline(stdscr, ACS_CKBOARD, barMax - barMin);
+		wattrset(stdscr, COLOR_PAIR(0b111111));
+	}
+	
+	
 	//Refresh display elements
 	wnoutrefresh(stdscr);
 	//touchwin(Pad);
-	pnoutrefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-1);
+	pnoutrefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-2);
 	pnoutrefresh(TopPad, 0, ScrollX,0,0,1,Width-1);
 
 	//Draw update to screen. Doing this after reduces screen flicker
 	doupdate();
+	
+	if (AutoScroll)
+	{
+		if (AutoScrollDelay++ >= 5)
+		{
+			int maxY = 0;
+			for (int i = 0; i < (int)PrinterList.size(); i++)
+			{
+				maxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
+			}
+			if (ScrollY + Height - 2 >= maxY)
+			{
+				ScrollY = 0;
+			}
+			else
+			{
+				ScrollY += MIN(PrinterHeight * 4, maxY-(ScrollY+Height-2));
+			}
+			AutoScrollDelay = 0;
+		}
+	}
+	else 
+	{
+		AutoScrollDelay = 0;
+	}
+}
+
+void Screen::Scroll()
+{
+	int maxY = 0;
+	int SelectMaxY = 0;
+	int SelectMinY = 0;
+	
+	for (int i = 0; i < (int)PrinterList.size(); i++)
+	{
+		if (i <= Cursor)
+		{
+			SelectMaxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
+			if (i-1 >= 0) { SelectMinY += (PrinterList[i-1].Expanded ? PrinterHeight : 1); }
+		}
+		maxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
+	}
+	SelectMaxY -= ScrollY;
+	SelectMinY -= ScrollY;
+	
+	if (SelectMaxY > Height-2) { ScrollY += SelectMaxY - (Height-2); }
+	if (SelectMinY < 0) { ScrollY += SelectMinY; }
+	if (maxY < Height-2) { ScrollY = 0; }
 }

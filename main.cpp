@@ -126,17 +126,25 @@ int main()
 		{
 			screen.Resize();
 		}
+		else if (key == 'a')
+		{
+			screen.AutoScroll = !screen.AutoScroll;
+		}
 		else if (key == 'e')
 		{
 			bool allExpanded = true;
 			for (int i = 0; i < (int)PrinterList.size(); i++) { allExpanded = allExpanded && PrinterList[i].Expanded; }
 			for (int i = 0; i < (int)PrinterList.size(); i++) { PrinterList[i].Expanded = !allExpanded; }
+			screen.Scroll();
 		}
 		else if (key == KEY_UP)
 		{
 			screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
 			Selected = &PrinterList[screen.Cursor];
 			//screen.ScrollY=MAX(screen.ScrollY-3, 0);
+			screen.Scroll();
+			
+			screen.AutoScroll = false;
 		}
 		else if (key == KEY_DOWN)
 		{
@@ -144,18 +152,26 @@ int main()
 			Selected = &PrinterList[screen.Cursor];
 			//if ((screen.Cursor + 1) * (PrinterHeight + 1) > screen.Height + screen.ScrollY) { screen.ScrollY+=PrinterHeight; }
 			//screen.ScrollY+=3;
+			screen.Scroll();
+			
+			screen.AutoScroll = false;
 		}
 		else if (key == 10) //Enter Key
 		{
 			Selected->Expanded = !Selected->Expanded;
+			screen.Scroll();
+			
+			screen.AutoScroll = false;
 		}
 		else if (key == KEY_LEFT)
 		{
 			screen.ScrollX=MAX(screen.ScrollX-3, 0);
+			screen.AutoScrollDelay = (screen.AutoScrollDelay > 0 ? screen.AutoScrollDelay - 1 : 0);
 		}
 		else if (key == KEY_RIGHT)
 		{
 			screen.ScrollX+=3;
+			screen.AutoScrollDelay = (screen.AutoScrollDelay > 0 ? screen.AutoScrollDelay - 1 : 0);
 		}
 	}
 

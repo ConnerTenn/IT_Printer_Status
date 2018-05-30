@@ -421,7 +421,7 @@ void Printer::Draw(Screen *screen)
 	
 	if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000)); }
 	//waddstr(Pad, "[");
-	waddstr(Pad, ("[" + Name + "]").c_str());
+	waddstr(Pad, ("[" + MinSize(Name, 12) + "]").c_str());
 	//waddstr(Pad, "]");
 	wattrset(Pad, COLOR_PAIR(NORMAL));
 	waddstr(Pad, "  ");
@@ -435,8 +435,9 @@ void Printer::Draw(Screen *screen)
 	
 	wmove(Pad, 0, TonerStart);
 	
+	bool noError = Status.size() && Status.find("File Error") == std::string::npos && Status.find("Network Error") == std::string::npos;
 	
-	if (Status.size() && Status.find("File Error") == std::string::npos && Status.find("Network Error") == std::string::npos)
+	if (noError)
 	{
 		if (Toner == 0) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } else if (Toner <= 20) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000)); }
 		waddstr(Pad, "Toner ["); 
@@ -459,41 +460,45 @@ void Printer::Draw(Screen *screen)
 		}
 	}
 	
+	
 	if (Expanded)
 	{
 		wmove(Pad, 1, 0);
 		if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); }
 		wvline(Pad, ACS_VLINE, 4);
 		wattrset(Pad, COLOR_PAIR(NORMAL));
-		
-		wmove(Pad, 1, 1);
-		waddstr(Pad, ("Model:       "+Model).c_str());
-		
-		wmove(Pad, 2, 1);
-		waddstr(Pad, ("Address:     "+Address).c_str());
-		
-		wmove(Pad, 3, 1);
-		waddstr(Pad, ("ContactName: "+ContactName).c_str());
-		
-		for (int i = 0; i < (int)KitList.size(); i++)
+			
+		if (noError)
 		{
-			wmove(Pad, i+1, 34);
-			waddstr(Pad, (MinSize(KitList[i].Name, 17) + std::to_string( KitList[i].LifeRemaining) + "%").c_str());
-		}
-		
-		
-		for (int i = 0, x = 0; i < (int)TrayList.size(); i++)
-		{
-			wmove(Pad, 1, TrayStart + x);
-			waddstr(Pad, std::to_string(TrayList[i].Capacity).c_str());
+			wmove(Pad, 1, 1);
+			waddstr(Pad, ("Model:       "+Model).c_str());
 			
-			wmove(Pad, 2, TrayStart + x);
-			waddstr(Pad, TrayList[i].PageSize.c_str());
+			wmove(Pad, 2, 1);
+			waddstr(Pad, ("Address:     "+Address).c_str());
 			
-			wmove(Pad, 3, TrayStart + x);
-			waddstr(Pad, TrayList[i].PageType.c_str());
+			wmove(Pad, 3, 1);
+			waddstr(Pad, ("ContactName: "+ContactName).c_str());
 			
-			x+= TrayList[i].Name.size() + 6 + 2;
+			for (int i = 0; i < (int)KitList.size(); i++)
+			{
+				wmove(Pad, i+1, 34);
+				waddstr(Pad, (MinSize(KitList[i].Name, 17) + std::to_string( KitList[i].LifeRemaining) + "%").c_str());
+			}
+			
+			
+			for (int i = 0, x = 0; i < (int)TrayList.size(); i++)
+			{
+				wmove(Pad, 1, TrayStart + x);
+				waddstr(Pad, std::to_string(TrayList[i].Capacity).c_str());
+				
+				wmove(Pad, 2, TrayStart + x);
+				waddstr(Pad, TrayList[i].PageSize.c_str());
+				
+				wmove(Pad, 3, TrayStart + x);
+				waddstr(Pad, TrayList[i].PageType.c_str());
+				
+				x+= TrayList[i].Name.size() + 6 + 2;
+			}
 		}
 	}
 }	
