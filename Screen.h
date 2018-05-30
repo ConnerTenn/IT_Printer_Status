@@ -18,8 +18,6 @@ struct Screen;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 //#define ROUND(a) (((a) - (int)(a)) > 0.5 ? (int)(a) + 1 : (int)(a) )
 
-extern std::vector<Printer> PrinterList; //Defined in main.cpp
-
 //Colour Pair definitions
 //Linux:	BGRBGR
 //Windows:	RGBRGB

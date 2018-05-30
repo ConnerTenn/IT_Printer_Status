@@ -24,7 +24,7 @@ struct Printer;
 #include <mutex>
 #include "Screen.h"
 
-extern std::vector<Printer> PrinterList; //Defined in Printer.cpp
+extern std::vector<Printer *> PrinterList; //Defined in Printer.cpp
 const int PrinterHeight = 5; 
 const int PrinterWidth = 300; 
 extern Printer *Selected; //Defined in Printer.cpp
@@ -32,7 +32,9 @@ extern int MaxStatusLength; //Defined in Printer.cpp
 
 
 void InitPrinters();
+void DestroyPrinters();
 void SortPrinters();
+void GetPrinterDisplayHeight(int *maxY, int *cursorMinY = 0, int *cursorMaxY = 0, int index = -1);
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);
 int First(std::string str, std::string first, std::string second, int offset = 0, int *i = 0);

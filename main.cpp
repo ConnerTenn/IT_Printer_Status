@@ -24,7 +24,7 @@ void UpdatePrinters()
 		
 		for (int i = 0; Run && i < (int)PrinterList.size(); i++)
 		{
-			PrinterList[i].Update();
+			PrinterList[i]->Update();
 		}
 		
 #ifdef LINUX
@@ -54,7 +54,7 @@ int main()
 	Timer = 1;
 #endif
 	
-	if (PrinterList.size()) { Selected = &PrinterList[0]; }
+	if (PrinterList.size()) { Selected = PrinterList[0]; }
 	
 	screen.Draw();
 	
@@ -99,6 +99,7 @@ int main()
 		{
 			InitPrinters();
 			screen.Resize();
+			if (PrinterList.size()) { Selected = PrinterList[0]; }
 			Timer = time(0) - 6;
 		}
 		else if (key == 'a')
@@ -123,14 +124,18 @@ int main()
 		else if (key == 'e')
 		{
 			bool allExpanded = true;
-			for (int i = 0; i < (int)PrinterList.size(); i++) { allExpanded = allExpanded && PrinterList[i].Expanded; }
-			for (int i = 0; i < (int)PrinterList.size(); i++) { PrinterList[i].Expanded = !allExpanded; }
+			for (int i = 0; i < (int)PrinterList.size(); i++) { allExpanded = allExpanded && PrinterList[i]->Expanded; }
+			for (int i = 0; i < (int)PrinterList.size(); i++) { PrinterList[i]->Expanded = !allExpanded; }
 			screen.Scroll();
+		}
+		else if (key == 's')
+		{
+			SortPrinters();
 		}
 		else if (key == KEY_UP)
 		{
 			screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
-			Selected = &PrinterList[screen.Cursor];
+			Selected = PrinterList[screen.Cursor];
 			//screen.ScrollY=MAX(screen.ScrollY-3, 0);
 			screen.Scroll();
 			
@@ -139,7 +144,7 @@ int main()
 		else if (key == KEY_DOWN)
 		{
 			screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
-			Selected = &PrinterList[screen.Cursor];
+			Selected = PrinterList[screen.Cursor];
 			//if ((screen.Cursor + 1) * (PrinterHeight + 1) > screen.Height + screen.ScrollY) { screen.ScrollY+=PrinterHeight; }
 			//screen.ScrollY+=3;
 			screen.Scroll();
@@ -169,6 +174,8 @@ int main()
 	PrinterLock.unlock();
 #endif
 	printerThread.join();
+	
+	DestroyPrinters();
 
 	return 0;
 }

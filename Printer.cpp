@@ -2,13 +2,13 @@
 #include "Printer.h"
 
 
-std::vector<Printer> PrinterList;
+std::vector<Printer *> PrinterList;
 Printer *Selected = 0;
 int MaxStatusLength = 0;
 
 void InitPrinters()
 {
-	PrinterList.clear();
+	DestroyPrinters();
 	
 	std::ifstream file("Printers.txt");
 	std::string line;
@@ -17,20 +17,74 @@ void InitPrinters()
 	{
 		if (line.size())
 		{
-			PrinterList.push_back(Printer(line));
+			PrinterList.push_back(new Printer(line));
 		}
 	}
 	
 	//mutexes created after adding printers to list to handle how std::vector copying and deleting Printer object issues
-	for (int i = 0; i < (int)PrinterList.size(); i++)
+	/*for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
 		PrinterList[i].Mutex = new std::mutex;
+	}*/
+}
+
+void DestroyPrinters()
+{
+	for (int i = 0; i < (int)PrinterList.size(); i++)
+	{
+		if (PrinterList[i]) { delete PrinterList[i]; }
 	}
+	
+	PrinterList.clear();
 }
 
 void SortPrinters()
 {
 	
+	for (int i = 0; i < (int)PrinterList.size(); i++)
+	{
+		PrinterList[i]->Mutex->lock();
+	}
+	
+	auto sortFunc = [](Printer *a, Printer *b)->int{ return 1; };
+	
+	int sorted = 0;
+	
+	while (sorted < (int)PrinterList.size() - 1)
+	{
+		int maxima = 0;
+		for (int i = sorted; i < (int)PrinterList.size(); i++)
+		{
+			if (sortFunc(PrinterList[i], PrinterList[maxima]) > 0)
+			{
+				maxima = i;
+			}
+		}
+		
+		Printer *temp = PrinterList[sorted];
+		PrinterList[sorted] = PrinterList[maxima];
+		PrinterList[maxima] = temp;
+		
+		sorted++;
+	}
+	
+	for (int i = 0; i < (int)PrinterList.size(); i++)
+	{
+		PrinterList[i]->Mutex->unlock();
+	}
+}
+
+void GetPrinterDisplayHeight(int *maxY, int *cursorMinY, int *cursorMaxY, int index)
+{
+	for (int i = 0; i < (int)PrinterList.size(); i++)
+	{
+		if (i <= index)
+		{
+			if (cursorMaxY) { *cursorMaxY += (PrinterList[i]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
+			if (cursorMinY && i-1 >= 0) { *cursorMinY += (PrinterList[i-1]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
+		}
+		if (maxY) { *maxY += (PrinterList[i]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
+	}
 }
 
 std::string Search(std::string str, std::string delim, int offset, int *i)
@@ -145,7 +199,7 @@ std::string MaxSize(std::string str, int size)
 
 
 Printer::Printer() : Printer("") {}
-Printer::Printer(std::string name) : Name(name) {}
+Printer::Printer(std::string name) : Name(name) { Mutex = new std::mutex; }
 
 Printer::~Printer()
 {
@@ -409,7 +463,7 @@ void Printer::Draw(Screen *screen)
 	
 	wclear(Pad);
 	
-	if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); }
+	if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); } else { wattrset(Pad, COLOR_PAIR(NORMAL)); }
 	if (Expanded) { waddch(Pad, ACS_ULCORNER); } else { waddch(Pad, ACS_HLINE ); }
 	
 	if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000)); }
@@ -422,6 +476,7 @@ void Printer::Draw(Screen *screen)
 	waddstr(Pad, (Status).c_str()); 
 	//wattrset(Pad, COLOR_PAIR(NORMAL));
 	waddstr(Pad, "  "); 
+	wattrset(Pad, COLOR_PAIR(NORMAL));
 	
 	wmove(Pad, 0, TonerStart);
 	

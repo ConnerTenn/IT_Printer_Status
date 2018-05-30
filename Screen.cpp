@@ -160,8 +160,8 @@ void Screen::Resize()
 	//Recreate Pads for each printer
 	for (int i = 0; Pad && i < (int)PrinterList.size(); i++)
 	{
-		if (PrinterList[i].Pad) { delwin(PrinterList[i].Pad); }
-		PrinterList[i].Pad = subpad(Pad, PrinterHeight, PrinterWidth, 0, 0);
+		if (PrinterList[i]->Pad) { delwin(PrinterList[i]->Pad); }
+		PrinterList[i]->Pad = subpad(Pad, PrinterHeight, PrinterWidth, 0, 0);
 	}
 	
 	if (Popup)
@@ -196,15 +196,22 @@ void Screen::Draw()
 		//Border(Pad, 0, printerPos-1, PrinterWidth+1, printerPos+PrinterHeight);
 		//wattrset(Pad, COLOR_PAIR(NORMAL));
 		
-		mvderwin(PrinterList[i].Pad, printerPos, 0);
+		mvderwin(PrinterList[i]->Pad, printerPos, 0);
 		
-		PrinterList[i].Mutex->lock();
-		PrinterList[i].Draw(this);
-		PrinterList[i].Mutex->unlock();
+		PrinterList[i]->Mutex->lock();
+		PrinterList[i]->Draw(this);
+		PrinterList[i]->Mutex->unlock();
 		//wborder(PrinterList[i].Pad, '1','2','3','4','5','6','7','8');
 		
-		printerPos+=(PrinterList[i].Expanded ? PrinterHeight : 1);
+		printerPos+=(PrinterList[i]->Expanded ? PrinterHeight : 1) + 1;
 		//if (PrinterList[i].Expanded) { exit(0); }
+		
+		if (i != (int)PrinterList.size() - 1)
+		{
+			wmove(Pad, printerPos - 1, 0);
+			whline(Pad, ACS_HLINE, getmaxx(Pad));
+		}
+		
 	}
 	
 	
@@ -226,10 +233,7 @@ void Screen::Draw()
 	//Scroll Bar
 	{
 		int maxY = 0;
-		for (int i = 0; i < (int)PrinterList.size(); i++)
-		{
-			maxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
-		}
+		GetPrinterDisplayHeight(&maxY);
 		
 		int screenMin = ScrollY;
 		int screenMax = ScrollY + Height-2;
@@ -282,7 +286,7 @@ void Screen::Draw()
 		waddstr(Popup, "Key Bindings:"); FillLine(Popup, ' ');
 		waddstr(Popup, "A: ");
 		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Auto Scroll\n");
+		waddstr(Popup, "Toggle Auto Scroll\n");
 		
 		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
 		waddstr(Popup, "R: ");
@@ -335,10 +339,8 @@ void Screen::Draw()
 		if (AutoScrollDelay++ >= 5)
 		{
 			int maxY = 0;
-			for (int i = 0; i < (int)PrinterList.size(); i++)
-			{
-				maxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
-			}
+			GetPrinterDisplayHeight(&maxY);
+			
 			if (ScrollY + Height - 2 >= maxY)
 			{
 				ScrollY = 0;
@@ -362,15 +364,7 @@ void Screen::Scroll()
 	int SelectMaxY = 0;
 	int SelectMinY = 0;
 	
-	for (int i = 0; i < (int)PrinterList.size(); i++)
-	{
-		if (i <= Cursor)
-		{
-			SelectMaxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
-			if (i-1 >= 0) { SelectMinY += (PrinterList[i-1].Expanded ? PrinterHeight : 1); }
-		}
-		maxY += (PrinterList[i].Expanded ? PrinterHeight : 1);
-	}
+	GetPrinterDisplayHeight(&maxY, &SelectMinY, &SelectMaxY, Cursor);
 	SelectMaxY -= ScrollY;
 	SelectMinY -= ScrollY;
 	
