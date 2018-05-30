@@ -1,11 +1,37 @@
 
 #include "Printer.h"
 
-//int PrinterHeight = 5;
-//int PrinterWidth = 50;
-//int PrinterCols = 1;
-//int DisplayStyle = 1;
+
+std::vector<Printer> PrinterList;
 Printer *Selected = 0;
+int MaxStatusLength = 0;
+
+void InitPrinters()
+{
+	PrinterList.clear();
+	
+	std::ifstream file("Printers.txt");
+	std::string line;
+	
+	while(std::getline(file, line))
+	{
+		if (line.size())
+		{
+			PrinterList.push_back(Printer(line));
+		}
+	}
+	
+	//mutexes created after adding printers to list to handle how std::vector copying and deleting Printer object issues
+	for (int i = 0; i < (int)PrinterList.size(); i++)
+	{
+		PrinterList[i].Mutex = new std::mutex;
+	}
+}
+
+void SortPrinters()
+{
+	
+}
 
 std::string Search(std::string str, std::string delim, int offset, int *i)
 {
@@ -95,44 +121,7 @@ void Replace(std::string &str, std::string find, std::string replace)
 }
 
 int First(std::string str, std::string first, std::string second, int offset, int *i)
-{
-	/*int s1 = offset, s2 = offset, f1 = 0, f2 = 0;
-	
-	while (s1 < (int)str.size() && s2 < (int)str.size())
-	{
-		
-		if (str[s1] == first[f1])
-		{
-			s1++;
-			f1++;
-		}
-		else
-		{
-			if (f1 == 0) { s1++; }
-			else { f1 = 0; }
-		}
-		
-		if (str[s2] == second[f2])
-		{
-			//incr = true && incr;
-			s2++;
-			f2++;
-		}
-		else
-		{
-			if (f2 == 0) { s2++; }
-			else { f2 = 0; }
-		}
-		
-		if (f1 >= (int)first.size() || f2 >= (int)second.size())
-		{
-			if (i) { *i = MIN(s1, s2); }
-			return s1 <= s2;
-		}
-	}
-	
-	return -1;*/
-	
+{	
 	size_t s1 = str.find(first, offset);
 	size_t s2 = str.find(second, offset);
 	
@@ -151,6 +140,9 @@ std::string MaxSize(std::string str, int size)
 {
 	return str.substr(0, MIN(size, (int)str.size()));
 }
+
+
+
 
 Printer::Printer() : Printer("") {}
 Printer::Printer(std::string name) : Name(name) {}
@@ -282,6 +274,8 @@ void Printer::GetStatus()
 		if (Toner == 0 && StatusColour == 0b111000 ) { StatusColour = 0b011000; }
 		
 		Mutex->unlock();
+		
+		MaxStatusLength = MAX(MaxStatusLength, (int)Status.size());
 	}
 }
 
@@ -410,9 +404,8 @@ int Printer::Update()
 
 void Printer::Draw(Screen *screen)
 {
-	const int StatusLen = 60;
-	const int TonerStart = StatusLen + 18;
-	const int TrayStart = TonerStart + 26;
+	int TonerStart = MaxStatusLength + 19;
+	int TrayStart = TonerStart + 26;
 	
 	wclear(Pad);
 	
@@ -420,17 +413,14 @@ void Printer::Draw(Screen *screen)
 	if (Expanded) { waddch(Pad, ACS_ULCORNER); } else { waddch(Pad, ACS_HLINE ); }
 	
 	if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b110000)); }
-	//waddstr(Pad, "[");
 	waddstr(Pad, ("[" + MinSize(Name, 12) + "]").c_str());
-	//waddstr(Pad, "]");
-	wattrset(Pad, COLOR_PAIR(NORMAL));
 	waddstr(Pad, "  ");
 	
 
-	if (Status.size() > StatusLen) { Status = MaxSize(Status, StatusLen-3) + "..."; }
+	//if (Status.size() > StatusLen) { Status = MaxSize(Status, StatusLen-3) + "..."; }
 	wattrset(Pad, A_BOLD | COLOR_PAIR(StatusColour));
 	waddstr(Pad, (Status).c_str()); 
-	wattrset(Pad, COLOR_PAIR(NORMAL));
+	//wattrset(Pad, COLOR_PAIR(NORMAL));
 	waddstr(Pad, "  "); 
 	
 	wmove(Pad, 0, TonerStart);
@@ -444,7 +434,9 @@ void Printer::Draw(Screen *screen)
 		for (int i=0;i<10;i++) { waddch(Pad, i<Toner/10?ACS_CKBOARD:' '); }
 		waddstr(Pad, "]");
 		waddstr(Pad, MinSize("~" + std::to_string(Toner) + "%", 6).c_str()); 
-		wattrset(Pad, COLOR_PAIR(NORMAL));
+		
+		
+		wattrset(Pad, (Selected == this ? A_BOLD : 0) | COLOR_PAIR(NORMAL));
 			
 		wmove(Pad, 0, TrayStart);
 		for (int i = 0; i < (int)TrayList.size(); i++)
@@ -456,7 +448,7 @@ void Printer::Draw(Screen *screen)
 			else if (TrayList[i].Status == "Low") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
 			else /*if (TrayList[i].Status == "Empty")*/ { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
 			waddstr(Pad, MinSize(TrayList[i].Status, 6).c_str());
-			wattrset(Pad, COLOR_PAIR(NORMAL));
+			wattrset(Pad, (Selected == this ? A_BOLD : 0) | COLOR_PAIR(NORMAL));
 		}
 	}
 	
@@ -466,7 +458,7 @@ void Printer::Draw(Screen *screen)
 		wmove(Pad, 1, 0);
 		if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); }
 		wvline(Pad, ACS_VLINE, 4);
-		wattrset(Pad, COLOR_PAIR(NORMAL));
+		wattrset(Pad, (Selected == this ? A_BOLD : 0) | COLOR_PAIR(NORMAL));
 			
 		if (noError)
 		{

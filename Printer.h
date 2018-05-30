@@ -8,8 +8,11 @@ struct Printer;
 #ifdef WINDOWS
 #include <windows.h>
 #undef MOUSE_MOVED
+#elif LINUX
+#include <unistd.h>
 #endif
 
+#include <fstream>
 #include <string>
 #include <curl/curl.h>
 #ifdef WINDOWS
@@ -21,19 +24,20 @@ struct Printer;
 #include <mutex>
 #include "Screen.h"
 
+extern std::vector<Printer> PrinterList; //Defined in Printer.cpp
+const int PrinterHeight = 5; 
+const int PrinterWidth = 300; 
+extern Printer *Selected; //Defined in Printer.cpp
+extern int MaxStatusLength; //Defined in Printer.cpp
+
+
+void InitPrinters();
+void SortPrinters();
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);
 int First(std::string str, std::string first, std::string second, int offset = 0, int *i = 0);
 std::string MinSize(std::string str, int size);
 std::string MaxSize(std::string str, int size);
-
-//const int MinPrinterWidth = 100;//77;
-//const int MaxPrinterWidth = 100;//80;
-const int PrinterHeight = 5; //Defined in Printer.cpp
-const int PrinterWidth = 300; //Defined in Printer.cpp
-//extern int PrinterCols; //Defined in Printer.cpp
-//extern int DisplayStyle; //Defined in Printer.cpp
-extern Printer *Selected; //Defined in Printer.cpp
 
 
 struct Tray

@@ -1,39 +1,12 @@
 
 //#include <iostream>
-#ifdef WINDOWS
-#include <windows.h>
-#undef MOUSE_MOVED
-#elif LINUX
-#include <unistd.h>
-#endif
+
 #include <time.h>
 //#include <stdio.h>
-#include <fstream>
 //#include <vector>
 //#include "Printer.h"
 #include "Screen.h"
 
-std::vector<Printer> PrinterList;
-
-void InitPrinters()
-{
-	std::ifstream file("Printers.txt");
-	std::string line;
-	
-	while(std::getline(file, line))
-	{
-		if (line.size())
-		{
-			PrinterList.push_back(Printer(line));
-		}
-	}
-	
-	//mutexes created after adding printers to list to handle how std::vector copying and deleting Printer object issues
-	for (int i = 0; i < (int)PrinterList.size(); i++)
-	{
-		PrinterList[i].Mutex = new std::mutex;
-	}
-}
 
 bool Run = true;
 #ifdef LINUX
@@ -124,11 +97,28 @@ int main()
 		}
 		else if (key == 'r')
 		{
+			InitPrinters();
 			screen.Resize();
+			Timer = time(0) - 6;
 		}
 		else if (key == 'a')
 		{
 			screen.AutoScroll = !screen.AutoScroll;
+		}
+		else if (key == 'h' || key == 'i')
+		{			
+			if (!screen.Popup)
+			{
+				screen.PopupBorder = subwin(stdscr, screen.Height / 2 + 2, screen.Width / 2 + 2, screen.Height / 4 - 1, screen.Width / 4 - 1);
+				screen.Popup = subwin(screen.PopupBorder, screen.Height / 2, screen.Width / 2, screen.Height / 4, screen.Width / 4);
+			}
+			else
+			{
+				delwin(screen.Popup);
+				screen.Popup = 0;
+				delwin(screen.PopupBorder);
+				screen.PopupBorder = 0;
+			}
 		}
 		else if (key == 'e')
 		{

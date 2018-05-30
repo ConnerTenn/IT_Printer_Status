@@ -56,6 +56,8 @@ struct Screen
 	WINDOW *TopPad = 0;
 	WINDOW *Pad = 0;
 	WINDOW *Debug = 0;
+	WINDOW *PopupBorder = 0;
+	WINDOW *Popup = 0;
 	
 	Screen();
 	~Screen();

@@ -114,6 +114,7 @@ Screen::~Screen()
 {	
 	delwin(TopPad); TopPad = 0;
 	delwin(Pad); Pad = 0;
+	if (Popup) { delwin(Popup); Popup = 0; delwin(PopupBorder); PopupBorder = 0;}
 	endwin();
 }
 
@@ -163,6 +164,14 @@ void Screen::Resize()
 		PrinterList[i].Pad = subpad(Pad, PrinterHeight, PrinterWidth, 0, 0);
 	}
 	
+	if (Popup)
+	{
+		delwin(Popup);
+		delwin(PopupBorder);
+		PopupBorder = subwin(stdscr, Height / 2 + 2, Width / 2 + 2, Height / 4 - 1, Width / 4 - 1);
+		Popup = subwin(stdscr, Height / 2, Width / 2, Height / 4, Width / 4);
+	}
+	
 	Scroll();
 }
 
@@ -175,7 +184,8 @@ void Screen::Draw()
 	
 	//Top Text Panel
 	wattrset(TopPad, A_BOLD | COLOR_PAIR(0b111010));
-	waddstr(TopPad, "Top Bar Tempate"); FillLine(TopPad, ' ');
+	waddstr(TopPad, " Name            Status");
+	FillLine(TopPad, ' ');
 	wattrset(TopPad, COLOR_PAIR(NORMAL));
 	
 	//Do drawing for printer grid
@@ -198,19 +208,17 @@ void Screen::Draw()
 	}
 	
 	
-	
-	/*move(1,1); 
-	addch(ACS_ULCORNER); addch(ACS_URCORNER); addch(ACS_LLCORNER); addch(ACS_LRCORNER); addch(ACS_PLUS);
-	move(1,1); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_ULCORNER); BottomText+=" ";
-	move(1,2); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_URCORNER); BottomText+=" ";
-	move(1,3); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_LLCORNER); BottomText+=" ";
-	move(1,4); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_LRCORNER); BottomText+=" ";
-	move(1,5); BottomText+=std::to_string(inch()); BottomText+=":"; BottomText+=std::to_string(ACS_PLUS); BottomText+=" ";*/
-	
 	//Bottom Text Panel
 	wattrset(stdscr, COLOR_PAIR(0b111100));
-	BottomText += "Printers:" + std::to_string(PrinterList.size()) + "  Auto Scroll:" + std::to_string(AutoScroll);
-	mvaddstr(Height - 1, 0, BottomText.c_str()); FillLine(stdscr, ' ');
+	wmove(stdscr, Height-1, 0);
+	
+	BottomText = std::string() + "Auto Scroll:" + (AutoScroll ? "ON " : "OFF");
+	waddstr(stdscr, BottomText.c_str()); FillLine(stdscr, ' ');
+	FillLine(stdscr, ' ');
+	BottomText = "Press H or I for Help and Info";
+	wmove(stdscr, Height-1, Width - 31);
+	waddstr(stdscr, BottomText.c_str());
+	
 	BottomText = "";
 	wattrset(stdscr, COLOR_PAIR(NORMAL));
 	
@@ -237,12 +245,87 @@ void Screen::Draw()
 		wattrset(stdscr, COLOR_PAIR(0b111111));
 	}
 	
+	if (Popup)
+	{
+		wclear(PopupBorder);
+		wclear(Popup);
+		
+		wattrset(PopupBorder, A_BOLD | COLOR_PAIR(NORMAL));
+		wborder(PopupBorder, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
+		
+		wattrset(Popup, A_BOLD | A_UNDERLINE | COLOR_PAIR(NORMAL));
+		FillLine(Popup, ' ');
+		wmove(Popup, 0, getmaxx(Popup)/2-2);
+		
+		waddstr(Popup, "Info"); 
+		
+		wmove(Popup, 1, 0);
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Created By: "); 
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Conner Tenn"); FillLine(Popup, ' ');
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Source Code availaible at:"); FillLine(Popup, ' ');
+		wattrset(Popup, A_BOLD | COLOR_PAIR(0b110000));
+		waddstr(Popup, "https://github.com/ConnerTenn/IT_Printer_Status"); FillLine(Popup, ' ');
+		
+		
+		wmove(Popup, 7, 0);
+		wattrset(Popup, A_BOLD | A_UNDERLINE | COLOR_PAIR(NORMAL));
+		FillLine(Popup, ' ');
+		wmove(Popup, 7, getmaxx(Popup)/2-5);
+		waddstr(Popup, "Help Menu"); 
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		wmove(Popup, 8, 0);
+		waddstr(Popup, "Key Bindings:"); FillLine(Popup, ' ');
+		waddstr(Popup, "A: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Auto Scroll\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "R: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Refresh Printers\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "E: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Expand/Contract All\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Enter: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Expand/Contract\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Arrow Keys: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Move Cursor and Scroll Left/Right\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Escape: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Close Program\n");
+		
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "H: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Toggle Help Menu");
+		
+		
+		
+	}
+	
 	
 	//Refresh display elements
 	wnoutrefresh(stdscr);
 	//touchwin(Pad);
 	pnoutrefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-2);
 	pnoutrefresh(TopPad, 0, ScrollX,0,0,1,Width-1);
+	
+	if (Popup) { wnoutrefresh(PopupBorder); wnoutrefresh(Popup); }
 
 	//Draw update to screen. Doing this after reduces screen flicker
 	doupdate();
