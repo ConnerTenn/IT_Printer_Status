@@ -100,7 +100,9 @@ int main()
 			InitPrinters();
 			screen.Resize();
 			if (PrinterList.size()) { Selected = PrinterList[0]; }
+#ifdef LINUX
 			Timer = time(0) - 6;
+#endif
 		}
 		else if (key == 'a')
 		{
