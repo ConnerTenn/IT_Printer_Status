@@ -264,6 +264,14 @@ void Printer::GetStatus()
 		{
 			StatusColour = 0b011000;
 		}
+		else if (colour == "#FF3333")
+		{
+			StatusColour = 0b001000;
+		}
+		else if (colour == "#97B1FF")
+		{
+			StatusColour = 0b100000;
+		}
 	}
 	
 	{
