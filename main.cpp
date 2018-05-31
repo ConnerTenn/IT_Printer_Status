@@ -112,6 +112,13 @@ int main()
 #endif
 			printerThread = std::thread(UpdatePrinters);
 		}
+#ifdef WINDOWS
+		else if (key == 'm')
+		{
+			resize_term(2000, 2000);
+			screen.Resize();
+		}
+#endif
 		else if (key == 'a')
 		{
 			screen.AutoScroll = !screen.AutoScroll;

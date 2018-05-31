@@ -103,6 +103,7 @@ Screen::Screen()
 #endif
 	
 	TopPad = newpad(1, 1000);
+	resize_term(50, 200);
 	Resize();
 
 #ifdef WINDOWS
@@ -302,7 +303,14 @@ void Screen::Draw()
 		waddstr(Popup, "S: ");
 		wattrset(Popup, COLOR_PAIR(NORMAL));
 		waddstr(Popup, "Toggle Sort Order\n");
-		
+
+#ifdef WINDOWS
+		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+		waddstr(Popup, "M: ");
+		wattrset(Popup, COLOR_PAIR(NORMAL));
+		waddstr(Popup, "Maximize Screen Size\n");
+#endif
+
 		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
 		waddstr(Popup, "E: ");
 		wattrset(Popup, COLOR_PAIR(NORMAL));
