@@ -222,14 +222,16 @@ void Screen::Draw()
 	wattrset(stdscr, COLOR_PAIR(0b111100));
 	wmove(stdscr, Height-1, 0);
 	
-	BottomText = std::string() + "Auto Scroll:" + (AutoScroll ? "ON " : "OFF");
-	waddstr(stdscr, BottomText.c_str()); FillLine(stdscr, ' ');
-	FillLine(stdscr, ' ');
-	BottomText = "Press H or I for Help and Info";
-	wmove(stdscr, Height-1, Width - 31);
-	waddstr(stdscr, BottomText.c_str());
+	waddstr(stdscr, "Auto Scroll:");
+	if (AutoScroll) { wattrset(stdscr, A_BOLD |  COLOR_PAIR(0b010100)); waddstr(stdscr, "ON "); }
+	else { wattrset(stdscr, A_BOLD |  COLOR_PAIR(0b001100)); waddstr(stdscr, "OFF"); }
 	
-	BottomText = "";
+	wattrset(stdscr, COLOR_PAIR(0b111100));
+	FillLine(stdscr, ' ');
+	
+	wmove(stdscr, Height-1, Width - 31);
+	waddstr(stdscr, "Press H or I for Help and Info");
+	
 	wattrset(stdscr, COLOR_PAIR(NORMAL));
 	
 	
@@ -257,7 +259,7 @@ void Screen::Draw()
 		wclear(PopupBorder);
 		wclear(Popup);
 		
-		wattrset(PopupBorder, A_BOLD | COLOR_PAIR(NORMAL));
+		wattrset(PopupBorder, A_BOLD | COLOR_PAIR(0b111111));
 		wborder(PopupBorder, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
 		
 		wattrset(Popup, A_BOLD | A_UNDERLINE | COLOR_PAIR(NORMAL));
@@ -322,9 +324,9 @@ void Screen::Draw()
 		waddstr(Popup, "Close Program\n");
 		
 		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		waddstr(Popup, "H: ");
+		waddstr(Popup, "H/I: ");
 		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Toggle Help Menu");
+		waddstr(Popup, "Toggle Help and Info Menu");
 		
 		
 		
@@ -344,7 +346,7 @@ void Screen::Draw()
 	
 	if (AutoScroll)
 	{
-		if (AutoScrollDelay++ >= 5)
+		if (AutoScrollDelay++ >= 10)
 		{
 			int maxY = 0;
 			GetPrinterDisplayHeight(&maxY);
@@ -355,7 +357,7 @@ void Screen::Draw()
 			}
 			else
 			{
-				ScrollY += MIN(PrinterHeight * 4, maxY-(ScrollY+Height-2));
+				ScrollY += MIN((int)(Height * 0.75), maxY-(ScrollY+Height-2));
 			}
 			AutoScrollDelay = 0;
 		}

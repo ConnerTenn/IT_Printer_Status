@@ -1,6 +1,8 @@
 
-F=-D LINUX $(if $(filter debug,$(MAKECMDGOALS)),-D DEBUG -ggdb, )
-GPP=g++ -std=c++17 -Wall -lncurses -lcurl -lpthread $F
+F=-D LINUX# $(if $(filter debug,$(MAKECMDGOALS)),-D DEBUG -ggdb, )
+T=
+
+GPP=g++ -std=c++17 -Wall -lncurses -lcurl -lpthread $F $T
 D=Build
 
 all: $D/run.exe
@@ -25,7 +27,9 @@ clean:
 	
 force: clean all
 
-debug:
+debug: T=$F -D DEBUG -ggdb
+debug: force
+	
 	
 
 

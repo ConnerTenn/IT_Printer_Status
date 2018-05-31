@@ -49,8 +49,6 @@ struct Screen
 	bool AutoScroll = false;
 	int AutoScrollDelay = 0;
 	
-	std::string BottomText;
-	
 	WINDOW *TopPad = 0;
 	WINDOW *Pad = 0;
 	WINDOW *Debug = 0;

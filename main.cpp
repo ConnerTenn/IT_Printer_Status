@@ -98,10 +98,17 @@ int main()
 		}
 		else if (key == 'r')
 		{
+			Run = false;
+#ifdef LINUX
+			PrinterLock.unlock();
+#endif
+			printerThread.join();
+			Run = true;
 			InitPrinters();
 			screen.Resize();
 			if (PrinterList.size()) { Selected = PrinterList[0]; }
 			Timer = time(0) - 6;
+			printerThread = std::thread(UpdatePrinters);
 		}
 		else if (key == 'a')
 		{

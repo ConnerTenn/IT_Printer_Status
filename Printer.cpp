@@ -65,11 +65,17 @@ void SortPrinters()
 			}
 			else if (SortOrder == 1)
 			{
-				// Red, Yellow, Green
+				
+				//Error status comes last
+				if (a->Status.find("File Error") != std::string::npos || a->Status.find("Network Error") != std::string::npos) { return 1; }
+				else if (b->Status.find("File Error") != std::string::npos || b->Status.find("Network Error") != std::string::npos) { return -1; }
+				// Red, Yellow, Blue, Green
 				if (a->StatusColour == 0b001000) { if (b->StatusColour == 0b001000) { a->Name.compare(b->Name); } else { return -1; } }
 				else if (b->StatusColour == 0b001000) { return 1; }
 				else if (a->StatusColour == 0b011000) { if (b->StatusColour == 0b011000) { a->Name.compare(b->Name); } else { return -1; } }
 				else if (b->StatusColour == 0b011000) { return 1; }
+				else if (a->StatusColour == 0b100000) { if (b->StatusColour == 0b100000) { a->Name.compare(b->Name); } else { return -1; } }
+				else if (b->StatusColour == 0b100000) { return 1; }
 				else if (a->StatusColour == 0b010000) { if (b->StatusColour == 0b010000) { a->Name.compare(b->Name); } else { return -1; } }
 				else if (b->StatusColour == 0b010000) { return 1; }
 			}
@@ -543,7 +549,7 @@ void Printer::Draw(Screen *screen)
 			if (TrayList[i].Status == "OK") { wattrset(Pad, COLOR_PAIR(0b010000)); }
 			else if (TrayList[i].Status == "Low") { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
 			else /*if (TrayList[i].Status == "Empty")*/ { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
-			waddstr(Pad, MinSize(TrayList[i].Status, 6).c_str());
+			waddstr(Pad, MinSize(TrayList[i].Status + " ", 6).c_str());
 			wattrset(Pad, (Selected == this ? A_BOLD : 0) | COLOR_PAIR(NORMAL));
 		}
 	}
