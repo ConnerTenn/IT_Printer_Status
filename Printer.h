@@ -38,7 +38,10 @@ extern int SortOrder; //Defined in Priner.cpp
 void InitPrinters();
 void DestroyPrinters();
 void SortPrinters();
-void GetPrinterDisplayHeight(int *maxY, int *cursorMinY = 0, int *cursorMaxY = 0, int index = -1);
+
+//Get the height of the printers based on if they're expanded or not
+void GetPrinterDisplayHeight(int *maxY, int *indexMinY = 0, int *indexMaxY = 0, int index = -1);
+
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);
 int First(std::string str, std::string first, std::string second, int offset = 0, int *i = 0);

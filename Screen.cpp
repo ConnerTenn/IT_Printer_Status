@@ -13,16 +13,6 @@ void FillLine(WINDOW *win, int chr)
 	waddstr(win, std::string(getmaxx(win)-getcurx(win), chr).c_str());
 }
 
-/*std::string GetFullLine(char chr)
-{
-	return std::string(getmaxx(stdscr)-getcurx(stdscr), chr);
-}
-
-std::string GetFullLine(WINDOW *win, char chr)
-{
-	return std::string(getmaxx(win)-getcurx(win), chr);
-}*/
-
 void Border(WINDOW *win, int x1, int y1, int x2, int y2)
 {
 	//Add straight lines
@@ -149,12 +139,6 @@ void Screen::Resize()
 	getmaxyx(stdscr, Height, Width);
 #endif
 	
-	//Get Nuber of columns and width of the printer tiles
-	//PrinterCols = MAX(1, Width / (MinPrinterWidth+2));
-	//PrinterWidth = MAX(Width / PrinterCols - 2, MinPrinterWidth);
-	
-
-	//FIX: This implementation works but is very slow
 
 	//Recreate Pad
 	if (Pad) { delwin(Pad); }
@@ -355,6 +339,8 @@ void Screen::Draw()
 	//Draw update to screen. Doing this after reduces screen flicker
 	doupdate();
 	
+	
+	
 	if (AutoScroll)
 	{
 		if (AutoScrollDelay++ >= 10)
@@ -379,7 +365,6 @@ void Screen::Draw()
 	}
 }
 
-//Update scroll based on boundaries
 void Screen::Scroll()
 {
 	int maxY = 0;

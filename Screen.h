@@ -30,9 +30,6 @@ enum Colours
 
 void FillLine(int chr);
 void FillLine(WINDOW *win, int chr);
-/* Warning, Do No Use; Cursor does not get updated before function call. If used concatinated with other characters to print a full line, will result in extra characters.
-std::string GetFullLine(char chr);
-std::string GetFullLine(WINDOW *win, char chr);*/
 void Border(WINDOW *win, int x1, int y1, int x2, int y2);
 
 struct Screen
@@ -59,6 +56,7 @@ struct Screen
 	
 	void Draw();
 	
+	//Update scroll position based on boundaries
 	void Scroll();
 };
 

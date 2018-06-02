@@ -52,14 +52,10 @@ void DestroyPrinters()
 	//PrinterListGuard.unlock();
 }
 
+//Sorts printers in PrinterList
 void SortPrinters()
 {
-	
-	/*for (int i = 0; i < (int)PrinterList.size(); i++)
-	{
-		PrinterList[i]->Mutex->lock();
-	}*/
-	
+	//Sort fuction to define sort order
 	auto sortFunc = [](Printer *a, Printer *b)->int
 		{ 
 			if (SortOrder == 0)
@@ -88,11 +84,12 @@ void SortPrinters()
 	
 	
 	
+	//simple selection sort algorithm
 	int sorted = 0;
-	
 	while (sorted < (int)PrinterList.size())
 	{
 		int select = sorted;
+		//find the item that comes next in the list
 		for (int i = sorted+1; i < (int)PrinterList.size(); i++)
 		{
 			if (sortFunc(PrinterList[i], PrinterList[select]) < 0)
@@ -108,21 +105,16 @@ void SortPrinters()
 		
 		sorted++;
 	}
-	
-	/*for (int i = 0; i < (int)PrinterList.size(); i++)
-	{
-		PrinterList[i]->Mutex->unlock();
-	}*/
 }
 
-void GetPrinterDisplayHeight(int *maxY, int *cursorMinY, int *cursorMaxY, int index)
+void GetPrinterDisplayHeight(int *maxY, int *indexMinY, int *indexMaxY, int index)
 {
 	for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
 		if (i <= index)
 		{
-			if (cursorMaxY) { *cursorMaxY += (PrinterList[i]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
-			if (cursorMinY && i-1 >= 0) { *cursorMinY += (PrinterList[i-1]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
+			if (indexMaxY) { *indexMaxY += (PrinterList[i]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
+			if (indexMinY && i-1 >= 0) { *indexMinY += (PrinterList[i-1]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
 		}
 		if (maxY) { *maxY += (PrinterList[i]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
 	}
@@ -251,6 +243,7 @@ Printer::~Printer()
 
 void Printer::GetStatus()
 {
+	//Read the topbar html
 	{
 		Buffer = "";
 		int offset = 0;
