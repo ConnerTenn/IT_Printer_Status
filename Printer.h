@@ -25,6 +25,7 @@ struct Printer;
 #include "Screen.h"
 
 extern std::vector<Printer *> PrinterList; //Defined in Printer.cpp
+extern std::vector<Printer *> PrinterUpdateThreadList; //Defined in Printer.cpp
 const int PrinterHeight = 5; 
 const int PrinterWidth = 300; 
 extern Printer *Selected; //Defined in Printer.cpp

@@ -3,13 +3,14 @@
 
 
 std::vector<Printer *> PrinterList;
+std::vector<Printer *> PrinterUpdateThreadList;
 Printer *Selected = 0;
 int MaxStatusLength = 0;
 int SortOrder = 0;
 //std::mutex PrinterListGuard;
 
 void InitPrinters()
-{	
+{
 	DestroyPrinters();
 	
 	//PrinterListGuard.lock();
@@ -22,6 +23,7 @@ void InitPrinters()
 		if (line.size())
 		{
 			PrinterList.push_back(new Printer(line));
+			PrinterUpdateThreadList.push_back(PrinterList.back());
 		}
 	}
 	
@@ -45,6 +47,7 @@ void DestroyPrinters()
 	}
 	
 	PrinterList.clear();
+	PrinterUpdateThreadList.clear();
 	
 	//PrinterListGuard.unlock();
 }
@@ -52,10 +55,10 @@ void DestroyPrinters()
 void SortPrinters()
 {
 	
-	for (int i = 0; i < (int)PrinterList.size(); i++)
+	/*for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
 		PrinterList[i]->Mutex->lock();
-	}
+	}*/
 	
 	auto sortFunc = [](Printer *a, Printer *b)->int
 		{ 
@@ -106,10 +109,10 @@ void SortPrinters()
 		sorted++;
 	}
 	
-	for (int i = 0; i < (int)PrinterList.size(); i++)
+	/*for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
 		PrinterList[i]->Mutex->unlock();
-	}
+	}*/
 }
 
 void GetPrinterDisplayHeight(int *maxY, int *cursorMinY, int *cursorMaxY, int index)
@@ -418,7 +421,7 @@ int Printer::Update()
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 2);
 	Buffer.clear();
 	res = curl_easy_perform(curl);
 	HtmlTopBar = Buffer;
@@ -430,7 +433,7 @@ int Printer::Update()
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 2);
 	Buffer.clear();
 	res = (res?res:curl_easy_perform(curl));
 	if (HtmlTopBar.find("<html class=\"top_bar\">") == std::string::npos) { res = CURLE_RECV_ERROR; }

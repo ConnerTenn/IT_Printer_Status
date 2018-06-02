@@ -9,27 +9,32 @@
 
 
 bool Run = true;
-#ifdef LINUX
-std::mutex PrinterLock;
-time_t Timer = 0;
-#endif
 
-void UpdatePrinters()
+time_t Timer = 0;
+std::vector<std::mutex *> PrinterLocks;
+std::vector<std::thread *> PrinterThreads;
+int UpdateIndex = 0;
+std::mutex UpdateIndexMutex;
+
+void UpdatePrinters(int index)
 {
 	while (Run)
 	{
-#ifdef LINUX
-		PrinterLock.lock();
-#endif
+		PrinterLocks[index]->lock();
 		
-		for (int i = 0; Run && i < (int)PrinterList.size(); i++)
+		while (UpdateIndex < (int)PrinterUpdateThreadList.size() && Run)
 		{
-			PrinterList[i]->Update();
+			int updateI = 0;
+			UpdateIndexMutex.lock();
+			updateI = UpdateIndex;
+			//UpdateIndex = (UpdateIndex < (int)PrinterUpdateThreadList.size() ? UpdateIndex+1 : 0);
+			UpdateIndex++;
+			UpdateIndexMutex.unlock();
+			
+			PrinterUpdateThreadList[updateI]->Update();
 		}
 		
-#ifdef LINUX
-		PrinterLock.unlock();
-#endif
+		PrinterLocks[index]->unlock();
 		
 		if (Run)
 		{
@@ -43,6 +48,31 @@ void UpdatePrinters()
 }
 
 
+
+void InitThreads()
+{
+	for (int i = 0; i < 4; i++)
+	{
+		PrinterLocks.push_back(new std::mutex);
+		PrinterThreads.push_back(new std::thread(UpdatePrinters, i));
+	}
+	UpdateIndex = 0;
+}
+
+void JoinThreads()
+{
+	for (int i = 0; i < (int)PrinterLocks.size(); i++) { PrinterLocks[i]->unlock(); }
+	for (int i = 0; i < (int)PrinterThreads.size(); i++)
+	{
+		PrinterThreads[i]->join();
+		delete PrinterThreads[i];
+	}
+	for (int i = 0; i < (int)PrinterLocks.size(); i++) { delete PrinterLocks[i]; }
+	
+	PrinterThreads.clear();
+	PrinterLocks.clear();
+}
+
 int main()
 {
 	MEVENT mouseEvent;
@@ -51,11 +81,9 @@ int main()
 	InitPrinters();
 	Screen screen; screen.Draw();
 	
-	std::thread printerThread(UpdatePrinters);
-
-#ifdef LINUX
-	Timer = 1;
-#endif
+	InitThreads();
+	
+	Timer=0;
 	
 	if (PrinterList.size()) { Selected = PrinterList[0]; }
 	
@@ -64,24 +92,21 @@ int main()
 	while (Run == true)
 	{
 		
-		
-#ifdef LINUX
-		//Used to create Network update delay
-		if (Timer && time(0) - Timer > 5)
+		if (Timer && time(0) - Timer > 10)
 		{
-			PrinterLock.unlock();
+			UpdateIndex = 0;
+			for (int i = 0; i < (int)PrinterLocks.size(); i++) { PrinterLocks[i]->unlock(); }
 			Timer = 0;
 			
 		}
-		else if (Timer == 0)
+		else if (UpdateIndex >= (int)PrinterUpdateThreadList.size())
 		{
-			if (PrinterLock.try_lock())
-			{
-				
-				Timer = time(0);
-			}
+			bool lock = true;
+			for (int i = 0; i < (int)PrinterLocks.size(); i++) { lock = lock && PrinterLocks[i]->try_lock(); }
+			
+			if (lock) { Timer = time(0); }
 		}
-#endif
+		
 		
 		SortPrinters();
 		screen.Draw();
@@ -159,10 +184,7 @@ int main()
 		else if (key == 'r')
 		{
 			Run = false;
-#ifdef LINUX
-			PrinterLock.unlock();
-#endif
-			printerThread.join();
+			JoinThreads();
 			Run = true;
 			InitPrinters();
 			screen.Resize();
@@ -170,7 +192,7 @@ int main()
 #ifdef LINUX
 			Timer = time(0) - 6;
 #endif
-			printerThread = std::thread(UpdatePrinters);
+			InitThreads();
 		}
 #ifdef WINDOWS
 		else if (key == 'm')
@@ -255,11 +277,8 @@ int main()
 			screen.AutoScrollDelay = (screen.AutoScrollDelay > 0 ? screen.AutoScrollDelay - 1 : 0);
 		}
 	}
-
-#ifdef LINUX
-	PrinterLock.unlock();
-#endif
-	printerThread.join();
+	
+	JoinThreads();
 	
 	DestroyPrinters();
 
