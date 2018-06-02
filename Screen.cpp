@@ -72,6 +72,7 @@ Screen::Screen()
 	noecho(); //dont print character to termial
 
 	keypad(stdscr, TRUE); //retrive special keys
+	mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
 
 	//nodelay(stdscr, TRUE); //dont delay
 	timeout(1000); //block getch for 1 sec
@@ -297,7 +298,7 @@ void Screen::Draw()
 		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
 		waddstr(Popup, "R: ");
 		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Refresh Printers\n");
+		waddstr(Popup, "Reload Printers From File and Reload\n");
 		
 		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
 		waddstr(Popup, "S: ");
@@ -319,7 +320,7 @@ void Screen::Draw()
 		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
 		waddstr(Popup, "Enter: ");
 		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Expand/Contract\n");
+		waddstr(Popup, "Expand/Contract Selected Printer\n");
 		
 		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
 		waddstr(Popup, "Arrow Keys: ");

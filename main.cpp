@@ -88,13 +88,61 @@ int main()
 		
 		int key = getch();
 		
-		if (key == 27) //Escape
+		if (key == 27 && !screen.Popup) //Escape
 		{
 			Run = false;
 		}
 		else if (key == KEY_RESIZE)
 		{
 			screen.Resize();
+		}
+		else if (key == KEY_MOUSE)
+		{
+			//Run = false;
+			MEVENT event;
+			if(getmouse(&event) == OK)
+			{
+				//detect leftclick
+				if(event.bstate & BUTTON1_PRESSED)
+				{
+					if (screen.Cursor == (event.y - 1) / 2 + screen.ScrollY)
+					{
+						Selected->Expanded = !Selected->Expanded;
+					}
+					else
+					{
+						screen.Cursor = (event.y - 1) / 2 + screen.ScrollY;
+						Selected = PrinterList[screen.Cursor];
+					}
+				}
+				if(event.bstate & BUTTON1_DOUBLE_CLICKED)
+				{
+					screen.Cursor = (event.y - 1) / 2 + screen.ScrollY;
+					Selected = PrinterList[screen.Cursor];
+					Selected->Expanded = !Selected->Expanded;
+				}
+				//Scroll Up
+				else if (event.bstate & 0x10000)
+				{
+					screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
+					Selected = PrinterList[screen.Cursor];
+					//screen.ScrollY=MAX(screen.ScrollY-3, 0);
+					screen.Scroll();
+					
+					screen.AutoScroll = false;
+				}
+				//Scroll Down
+				else if (event.bstate & 0x200000)
+				{
+					screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
+					Selected = PrinterList[screen.Cursor];
+					//if ((screen.Cursor + 1) * (PrinterHeight + 1) > screen.Height + screen.ScrollY) { screen.ScrollY+=PrinterHeight; }
+					//screen.ScrollY+=3;
+					screen.Scroll();
+					
+					screen.AutoScroll = false;
+				}
+			}
 		}
 		else if (key == 'r')
 		{
@@ -122,6 +170,13 @@ int main()
 		else if (key == 'a')
 		{
 			screen.AutoScroll = !screen.AutoScroll;
+		}
+		else if (key == 27 && screen.Popup)
+		{
+			delwin(screen.Popup);
+			screen.Popup = 0;
+			delwin(screen.PopupBorder);
+			screen.PopupBorder = 0;
 		}
 		else if (key == 'h' || key == 'i')
 		{			
