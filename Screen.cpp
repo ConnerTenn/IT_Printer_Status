@@ -377,6 +377,7 @@ void Screen::Draw()
 	}
 }
 
+//Update scroll based on boundaries
 void Screen::Scroll()
 {
 	int maxY = 0;
@@ -390,4 +391,5 @@ void Screen::Scroll()
 	if (SelectMaxY > Height-2) { ScrollY += SelectMaxY - (Height-2); }
 	if (SelectMinY < 0) { ScrollY += SelectMinY; }
 	if (maxY < Height-2) { ScrollY = 0; }
+	if (ScrollY > maxY - (Height-2)) { ScrollY = maxY - (Height-2); }
 }
