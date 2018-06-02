@@ -7,7 +7,6 @@ struct Printer;
 
 #ifdef WINDOWS
 #include <windows.h>
-#undef MOUSE_MOVED
 #elif LINUX
 #include <unistd.h>
 #endif
@@ -16,6 +15,8 @@ struct Printer;
 #include <string>
 #include <curl/curl.h>
 #ifdef WINDOWS
+#define NCURSES_MOUSE_VERSION
+#undef MOUSE_MOVED
 #include <curses.h>
 #elif LINUX
 #include <ncurses.h>

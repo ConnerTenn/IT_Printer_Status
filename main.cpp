@@ -124,21 +124,22 @@ int main()
 		else if (key == KEY_MOUSE && getmouse(&mouseEvent) == OK)
 		{
 			//detect leftclick
-			if(mouseEvent.bstate & (BUTTON1_PRESSED | BUTTON1_DOUBLE_CLICKED))
+			if(mouseEvent.bstate & (BUTTON1_PRESSED | BUTTON1_CLICKED | BUTTON1_DOUBLE_CLICKED))
 			{
+				int cursorY = (mouseEvent.y - 1) + screen.ScrollY;
 				int clickedI = 0, cursorMaxY = 0, cursorMinY = 0;//, maxY = 0;
 				
 				//calculate index of printer that was clicked on
 				for (int i = 0; i < (int)PrinterList.size(); i++)
 				{
-					int cursorY = (mouseEvent.y - 1) + screen.ScrollY;
 					cursorMaxY += (PrinterList[i]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0);
 					if (i-1 >= 0) { cursorMinY += (PrinterList[i-1]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
 					
 					if (cursorMinY <= cursorY && cursorY < cursorMaxY) { clickedI = i; i = PrinterList.size(); }
 				}
+				if (cursorY > cursorMaxY) { clickedI = (int)PrinterList.size() - 1; }
 				
-				if (mouseEvent.bstate & BUTTON1_PRESSED)
+				if (mouseEvent.bstate & (BUTTON1_PRESSED | BUTTON1_CLICKED))
 				{
 					//Select printer
 					if (screen.Cursor != clickedI)
@@ -165,20 +166,24 @@ int main()
 			//Scroll Up
 			else if (mouseEvent.bstate & 0x10000)
 			{
-				screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
-				Selected = PrinterList[screen.Cursor];
-				screen.Scroll();
+				//screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
+				//Selected = PrinterList[screen.Cursor];
+				//screen.Scroll();
+				screen.ScrollY -= MIN(6, screen.ScrollY);
 				
-				screen.AutoScroll = false;
+				//screen.AutoScroll = false;
 			}
 			//Scroll Down
 			else if (mouseEvent.bstate & 0x200000)
 			{
-				screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
-				Selected = PrinterList[screen.Cursor];
-				screen.Scroll();
+				//screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
+				//Selected = PrinterList[screen.Cursor];
+				//screen.Scroll();
+				int maxY = 0;
+				GetPrinterDisplayHeight(&maxY);
+				screen.ScrollY += MAX(0, MIN(6, maxY - (screen.ScrollY + screen.Height - 2)));
 				
-				screen.AutoScroll = false;
+				//screen.AutoScroll = false;
 			}
 		}
 		else if (key == 'r')

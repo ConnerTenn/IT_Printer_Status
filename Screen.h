@@ -6,11 +6,6 @@ struct Screen;
 
 #include <vector>
 #include <curl/curl.h>
-#ifdef WINDOWS
-#include <curses.h>
-#elif LINUX
-#include <ncurses.h>
-#endif
 #include <signal.h>
 #include "Printer.h"
 

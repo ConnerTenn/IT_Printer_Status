@@ -73,6 +73,7 @@ Screen::Screen()
 
 	keypad(stdscr, TRUE); //retrive special keys
 	mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
+	mouseinterval(10);
 
 	//nodelay(stdscr, TRUE); //dont delay
 	timeout(1000); //block getch for 1 sec
@@ -345,6 +346,7 @@ void Screen::Draw()
 	//Refresh display elements
 	wnoutrefresh(stdscr);
 	//touchwin(Pad);
+
 	pnoutrefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-2);
 	pnoutrefresh(TopPad, 0, ScrollX,0,0,1,Width-1);
 	
@@ -391,5 +393,6 @@ void Screen::Scroll()
 	if (SelectMaxY > Height-2) { ScrollY += SelectMaxY - (Height-2); }
 	if (SelectMinY < 0) { ScrollY += SelectMinY; }
 	if (maxY < Height-2) { ScrollY = 0; }
-	if (ScrollY > maxY - (Height-2)) { ScrollY = maxY - (Height-2); }
+	if (ScrollY > maxY - (Height-2)) { ScrollY = MAX(maxY - (Height-2), 0); }
 }
+
