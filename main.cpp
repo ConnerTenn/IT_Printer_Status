@@ -45,6 +45,9 @@ void UpdatePrinters()
 
 int main()
 {
+	MEVENT mouseEvent;
+	
+	
 	InitPrinters();
 	Screen screen; screen.Draw();
 	
@@ -60,8 +63,6 @@ int main()
 	
 	while (Run == true)
 	{
-		//screen.Cursor = (screen.Cursor+1)%PrinterList.size();
-		
 		
 		
 #ifdef LINUX
@@ -80,7 +81,6 @@ int main()
 				Timer = time(0);
 			}
 		}
-		//printf("%d\n", time(0) - Time1);
 #endif
 		
 		SortPrinters();
@@ -96,69 +96,64 @@ int main()
 		{
 			screen.Resize();
 		}
-		else if (key == KEY_MOUSE)
+		else if (key == KEY_MOUSE && getmouse(&mouseEvent) == OK)
 		{
-			//Run = false;
-			MEVENT event;
-			if(getmouse(&event) == OK)
+			//detect leftclick
+			if(mouseEvent.bstate & (BUTTON1_PRESSED | BUTTON1_DOUBLE_CLICKED))
 			{
-				//detect leftclick
-				if(event.bstate & (BUTTON1_PRESSED | BUTTON1_DOUBLE_CLICKED))
+				int clickedI = 0, cursorMaxY = 0, cursorMinY = 0;//, maxY = 0;
+				
+				//calculate index of printer that was clicked on
+				for (int i = 0; i < (int)PrinterList.size(); i++)
 				{
-					int clickedI = 0, cursorMaxY = 0, cursorMinY = 0;//, maxY = 0;
+					int cursorY = (mouseEvent.y - 1) + screen.ScrollY;
+					cursorMaxY += (PrinterList[i]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0);
+					if (i-1 >= 0) { cursorMinY += (PrinterList[i-1]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
 					
-					//calculate index of printer that was clicked on
-					for (int i = 0; i < (int)PrinterList.size(); i++)
-					{
-						int cursorY = (event.y - 1) + screen.ScrollY;
-						cursorMaxY += (PrinterList[i]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0);
-						if (i-1 >= 0) { cursorMinY += (PrinterList[i-1]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
-						
-						if (cursorMinY <= cursorY && cursorY < cursorMaxY) { clickedI = i; i = PrinterList.size(); }
-					}
-					
-					if (event.bstate & BUTTON1_PRESSED)
-					{
-						//Select printer
-						if (screen.Cursor != clickedI)
-						{
-							screen.Cursor = clickedI;
-							Selected = PrinterList[screen.Cursor];
-						}
-						//Already selected; toggle expanded
-						else
-						{
-							Selected->Expanded = !Selected->Expanded;
-							screen.Scroll();
-						}
-					}
-					//Immediately select and expand
-					else if(event.bstate & BUTTON1_DOUBLE_CLICKED)
+					if (cursorMinY <= cursorY && cursorY < cursorMaxY) { clickedI = i; i = PrinterList.size(); }
+				}
+				
+				if (mouseEvent.bstate & BUTTON1_PRESSED)
+				{
+					//Select printer
+					if (screen.Cursor != clickedI)
 					{
 						screen.Cursor = clickedI;
 						Selected = PrinterList[screen.Cursor];
+					}
+					//Already selected; toggle expanded
+					else
+					{
 						Selected->Expanded = !Selected->Expanded;
 						screen.Scroll();
 					}
 				}
-				//Scroll Up
-				else if (event.bstate & 0x10000)
+				//Immediately select and expand
+				else if(mouseEvent.bstate & BUTTON1_DOUBLE_CLICKED)
 				{
-					screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
+					screen.Cursor = clickedI;
 					Selected = PrinterList[screen.Cursor];
+					Selected->Expanded = !Selected->Expanded;
 					screen.Scroll();
-					
-					screen.AutoScroll = false;
 				}
-				//Scroll Down
-				else if (event.bstate & 0x200000)
-				{
-					screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
-					Selected = PrinterList[screen.Cursor];
-					screen.Scroll();
-					
-					screen.AutoScroll = false;
-				}
+			}
+			//Scroll Up
+			else if (mouseEvent.bstate & 0x10000)
+			{
+				screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
+				Selected = PrinterList[screen.Cursor];
+				screen.Scroll();
+				
+				screen.AutoScroll = false;
+			}
+			//Scroll Down
+			else if (mouseEvent.bstate & 0x200000)
+			{
+				screen.Cursor = (screen.Cursor >= (int)PrinterList.size() - 1 ? PrinterList.size() - 1 : screen.Cursor + 1);
+				Selected = PrinterList[screen.Cursor];
+				screen.Scroll();
+				
+				screen.AutoScroll = false;
 			}
 		}
 		else if (key == 'r')
@@ -221,6 +216,7 @@ int main()
 		{
 			SortOrder = (SortOrder > 0 ? 0 : SortOrder+1);
 			SortPrinters();
+			Selected = PrinterList[screen.Cursor];
 		}
 		else if (key == KEY_UP)
 		{
