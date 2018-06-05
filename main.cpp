@@ -11,66 +11,58 @@
 bool Run = true;
 
 time_t Timer = 0;
-std::vector<std::mutex *> PrinterLocks;
-std::vector<std::thread *> PrinterThreads;
+const int ThreadNum = 10;
+std::thread *PrinterThreads[ThreadNum];
+bool PrinterComplete[ThreadNum];
 int UpdateIndex = 0;
 std::mutex UpdateIndexMutex;
 
 void UpdatePrinters(int index)
 {
-	while (Run)
+	while (UpdateIndex < (int)PrinterUpdateThreadList.size() && Run)
 	{
-		PrinterLocks[index]->lock();
-		
-		while (UpdateIndex < (int)PrinterUpdateThreadList.size() && Run)
-		{
-			int updateI = 0;
-			UpdateIndexMutex.lock();
-			updateI = UpdateIndex;
-			//UpdateIndex = (UpdateIndex < (int)PrinterUpdateThreadList.size() ? UpdateIndex+1 : 0);
-			UpdateIndex++;
-			UpdateIndexMutex.unlock();
+		int updateI = 0;
+		UpdateIndexMutex.lock();
+		updateI = UpdateIndex;
+
+		UpdateIndex++;
+		UpdateIndexMutex.unlock();
 			
-			PrinterUpdateThreadList[updateI]->Update();
-		}
-		
-		PrinterLocks[index]->unlock();
-		
-		if (Run)
-		{
-#ifdef WINDOWS
-			Sleep(500);
-#elif LINUX
-			sleep(1);
-#endif
-		}
+		PrinterUpdateThreadList[updateI]->Update();
 	}
+		
+
+	PrinterComplete[index] = true;
 }
 
 
 
 void InitThreads()
 {
-	for (int i = 0; i < 4; i++)
-	{
-		PrinterLocks.push_back(new std::mutex);
-		PrinterThreads.push_back(new std::thread(UpdatePrinters, i));
-	}
 	UpdateIndex = 0;
+	Timer = 0;
+	for (int i = 0; i < ThreadNum; i++)
+	{
+		PrinterComplete[i] = false;
+		PrinterThreads[i] = new std::thread(UpdatePrinters, i);
+	}
 }
 
 void JoinThreads()
 {
-	for (int i = 0; i < (int)PrinterLocks.size(); i++) { PrinterLocks[i]->unlock(); }
-	for (int i = 0; i < (int)PrinterThreads.size(); i++)
+	Run = false;
+
+	for (int i = 0; i < ThreadNum; i++)
 	{
-		PrinterThreads[i]->join();
-		delete PrinterThreads[i];
+		if (PrinterThreads[i])
+		{
+			PrinterThreads[i]->join();
+			delete PrinterThreads[i];
+			PrinterThreads[i] = 0;
+		}
 	}
-	for (int i = 0; i < (int)PrinterLocks.size(); i++) { delete PrinterLocks[i]; }
-	
-	PrinterThreads.clear();
-	PrinterLocks.clear();
+
+	Run = true;
 }
 
 int main()
@@ -92,19 +84,23 @@ int main()
 	while (Run == true)
 	{
 		
-		if (Timer && time(0) - Timer > 10)
+		if (Timer && time(0) - Timer > 5)
 		{
 			UpdateIndex = 0;
-			for (int i = 0; i < (int)PrinterLocks.size(); i++) { PrinterLocks[i]->unlock(); }
+			InitThreads();
 			Timer = 0;
 			
 		}
-		else if (UpdateIndex >= (int)PrinterUpdateThreadList.size())
+		else if (!Timer && UpdateIndex >= (int)PrinterUpdateThreadList.size())
 		{
-			bool lock = true;
-			for (int i = 0; i < (int)PrinterLocks.size(); i++) { lock = lock && PrinterLocks[i]->try_lock(); }
-			
-			if (lock) { Timer = time(0); }
+			bool complete = true;
+			for (int i = 0; i <ThreadNum; i++) { complete = complete && PrinterComplete[i]; }
+
+			if (complete)
+			{
+				JoinThreads();
+				Timer = time(0);
+			}
 		}
 		
 		
@@ -188,9 +184,7 @@ int main()
 		}
 		else if (key == 'r')
 		{
-			Run = false;
 			JoinThreads();
-			Run = true;
 			InitPrinters();
 			screen.Resize();
 			if (PrinterList.size()) { Selected = PrinterList[0]; }

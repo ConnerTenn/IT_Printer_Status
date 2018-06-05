@@ -493,6 +493,12 @@ int Printer::Update()
 	{
 		GetStatus();
 	}
+
+#ifdef LINUX
+	sleep(2);
+#elif WINDOWS
+	Sleep(2000);
+#endif
 	
 	return 0;
 #endif
