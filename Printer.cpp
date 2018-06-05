@@ -408,8 +408,13 @@ int Printer::Update()
 	CURL *curl = curl_easy_init();
 	if(!curl) { return 0; }
 	CURLcode res = CURLE_OK;
+
+	Mutex->lock();
+	const char *urlTopbar = GetUrlTopbar().c_str();
+	const char *urlstatus = GetUrlStatus().c_str();
+	Mutex->unlock();
 	
-	curl_easy_setopt(curl, CURLOPT_URL, GetUrlTopbar().c_str());
+	curl_easy_setopt(curl, CURLOPT_URL, urlTopbar);
 	//curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &WriteCallback);
@@ -421,7 +426,7 @@ int Printer::Update()
 	if (HtmlTopBar.find("<html class=\"top_bar\">") == std::string::npos) { res = CURLE_RECV_ERROR; }
 	if (res != CURLE_OK) { Status = "Network Error:" + std::to_string(res); StatusColour = 0b001000; }
 	
-	curl_easy_setopt(curl, CURLOPT_URL, GetUrlStatus().c_str());
+	curl_easy_setopt(curl, CURLOPT_URL, urlstatus);
 	//curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &WriteCallback);
@@ -445,8 +450,7 @@ int Printer::Update()
 #include <stdio.h>
 
 	int res = 0;
-	
-	FILE *file = fopen((Name + "-topbar.html").c_str(), "r");
+	Mutex->lock(); FILE *file = fopen((Name + "-topbar.html").c_str(), "r"); Mutex->unlock();
 	if (file)
 	{
 		fseek(file, 0, SEEK_END);
@@ -467,7 +471,7 @@ int Printer::Update()
 	}
 	
 	
-	if (res) { file = fopen((Name + "-status.html").c_str(), "r"); }
+	if (res) { Mutex->lock(); file = fopen((Name + "-status.html").c_str(), "r"); Mutex->unlock(); }
 	if (file)
 	{
 		fseek(file, 0, SEEK_END);

@@ -19,16 +19,17 @@ std::mutex UpdateIndexMutex;
 
 void UpdatePrinters(int index)
 {
-	while (UpdateIndex < (int)PrinterUpdateThreadList.size() && Run)
+	bool loop = true;
+	while (loop)
 	{
 		int updateI = 0;
 		UpdateIndexMutex.lock();
+		loop = UpdateIndex < (int)PrinterUpdateThreadList.size() && Run;
 		updateI = UpdateIndex;
-
 		UpdateIndex++;
 		UpdateIndexMutex.unlock();
 			
-		PrinterUpdateThreadList[updateI]->Update();
+		if (loop) { PrinterUpdateThreadList[updateI]->Update(); }
 	}
 		
 
@@ -188,9 +189,7 @@ int main()
 			InitPrinters();
 			screen.Resize();
 			if (PrinterList.size()) { Selected = PrinterList[0]; }
-#ifdef LINUX
-			Timer = time(0) - 6;
-#endif
+			Timer = 0;
 			InitThreads();
 		}
 #ifdef WINDOWS
