@@ -371,7 +371,7 @@ void Printer::GetStatus()
 		
 		Mutex->unlock();
 		
-		MaxStatusLength = MAX(MaxStatusLength, (int)Status.size());
+		//MaxStatusLength = MAX(MaxStatusLength, (int)Status.size());
 	}
 }
 

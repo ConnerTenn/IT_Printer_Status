@@ -164,6 +164,14 @@ void Screen::Resize()
 
 void Screen::Draw()
 {
+	MaxStatusLength = 0;
+	for (int i = 0; i < (int)PrinterList.size(); i++)
+	{
+		PrinterList[i]->Mutex->lock();
+		MaxStatusLength = MAX(MaxStatusLength, (int)PrinterList[i]->Status.size());
+		PrinterList[i]->Mutex->unlock();
+	}
+
 	//Clear Pads
 	clear();
 	wclear(TopPad);
