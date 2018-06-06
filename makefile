@@ -13,8 +13,8 @@ all: dir $D/run.exe
 dir:
 	mkdir -p $D
 
-$D/run.exe: dir $D/main.o $D/Screen.o $D/Printer.o
-	$(GPP) $D/main.o $D/Screen.o $D/Printer.o -o $D/run.exe
+$D/run.exe: dir $D/main.o $D/Screen.o $D/PrinterClass.o $D/PrinterFunctions.o
+	$(GPP) $D/main.o $D/Screen.o $D/PrinterClass.o $D/PrinterFunctions.o -o $D/run.exe
 
 $D/main.o: dir main.cpp Printer.h
 	$(GPP) main.cpp -c -o $D/main.o
@@ -22,8 +22,11 @@ $D/main.o: dir main.cpp Printer.h
 $D/Screen.o: dir Screen.cpp Screen.h
 	$(GPP) Screen.cpp -c -o $D/Screen.o
 
-$D/Printer.o: dir Printer.cpp Printer.h
-	$(GPP) Printer.cpp -c -o $D/Printer.o
+$D/PrinterClass.o: dir PrinterClass.cpp Printer.h
+	$(GPP) PrinterClass.cpp -c -o $D/PrinterClass.o
+	
+$D/PrinterFunctions.o: dir PrinterFunctions.cpp Printer.h
+	$(GPP) PrinterFunctions.cpp -c -o $D/PrinterFunctions.o
 
 run: all
 	$D/run.exe
