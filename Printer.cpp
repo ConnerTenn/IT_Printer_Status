@@ -410,11 +410,8 @@ int Printer::Update()
 	CURLcode res = CURLE_OK;
 
 	Mutex->lock();
-	const char *urlTopbar = GetUrlTopbar().c_str();
-	const char *urlstatus = GetUrlStatus().c_str();
+	curl_easy_setopt(curl, CURLOPT_URL, GetUrlTopbar().c_str());
 	Mutex->unlock();
-	
-	curl_easy_setopt(curl, CURLOPT_URL, urlTopbar);
 	//curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &WriteCallback);
@@ -426,7 +423,9 @@ int Printer::Update()
 	if (HtmlTopBar.find("<html class=\"top_bar\">") == std::string::npos) { res = CURLE_RECV_ERROR; }
 	if (res != CURLE_OK) { Status = "Network Error:" + std::to_string(res); StatusColour = 0b001000; }
 	
-	curl_easy_setopt(curl, CURLOPT_URL, urlstatus);
+	Mutex->lock();
+	curl_easy_setopt(curl, CURLOPT_URL, GetUrlStatus().c_str());
+	Mutex->unlock();
 	//curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &WriteCallback);
