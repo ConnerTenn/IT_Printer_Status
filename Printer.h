@@ -25,14 +25,16 @@ struct Printer;
 #include <mutex>
 #include "Screen.h"
 
-extern std::vector<Printer *> PrinterList; //Defined in Printer.cpp
-extern std::vector<Printer *> PrinterUpdateThreadList; //Defined in Printer.cpp
+extern std::vector<Printer *> PrinterList; 
+extern std::vector<Printer *> PrinterUpdateThreadList; 
 const int PrinterHeight = 5; 
 const int PrinterWidth = 300; 
-extern Printer *Selected; //Defined in Printer.cpp
-extern int MaxStatusLength; //Defined in Printer.cpp
-extern int SortOrder; //Defined in Priner.cpp
-//extern std::mutex PrinterListGuard; //Defined in Printer.cpp
+extern Printer *Selected; 
+extern int SortOrder; 
+//extern std::mutex PrinterListGuard; 
+extern int PrinterColumns[10];
+extern int MinStatusLength; 
+extern int MaxStatusLength; 
 
 
 void InitPrinters();
@@ -41,6 +43,8 @@ void SortPrinters();
 
 //Get the height of the printers based on if they're expanded or not
 void GetPrinterDisplayHeight(int *maxY, int *indexMinY = 0, int *indexMaxY = 0, int index = -1);
+//Printer *GetPrinterAtHeight()
+void UpdatePrinterColumns();
 
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);

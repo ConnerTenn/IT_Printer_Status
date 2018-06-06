@@ -5,8 +5,10 @@
 std::vector<Printer *> PrinterList;
 std::vector<Printer *> PrinterUpdateThreadList;
 Printer *Selected = 0;
-int MaxStatusLength = 0;
 int SortOrder = 0;
+int PrinterColumns[10];
+int MinStatusLength = 0;
+int MaxStatusLength = 50;
 //std::mutex PrinterListGuard;
 
 void InitPrinters()
@@ -107,6 +109,9 @@ void SortPrinters()
 	}
 }
 
+
+
+
 void GetPrinterDisplayHeight(int *maxY, int *indexMinY, int *indexMaxY, int index)
 {
 	for (int i = 0; i < (int)PrinterList.size(); i++)
@@ -119,6 +124,41 @@ void GetPrinterDisplayHeight(int *maxY, int *indexMinY, int *indexMaxY, int inde
 		if (maxY) { *maxY += (PrinterList[i]->Expanded ? PrinterHeight : 1) + (i < (int)PrinterList.size() - 1 ? 1 : 0); }
 	}
 }
+
+void UpdatePrinterColumns()
+{
+	const int begin = 18, tonerWidth = 25;
+	int PrinterColumnWidths[10];
+	
+	for (int i = 0; i < 10; i++) { PrinterColumnWidths[i] = 0; }
+	PrinterColumnWidths[1] = tonerWidth;
+	
+	for (int i = 0; i < (int)PrinterList.size(); i++)
+	{
+		PrinterColumnWidths[0] = MAX(PrinterColumnWidths[0], (int)PrinterList[i]->Status.size());
+		
+		for (int j = 0; j < (int)PrinterList[i]->TrayList.size(); j++)
+		{
+			int k = j+2;
+			if (PrinterList[i]->TrayList[j].Name == "Multi-Purpose Feeder") { k = 7; }
+			if (PrinterList[i]->TrayList[j].Name == "Standard Bin") { k = 8; }
+			if (PrinterList[i]->TrayList[j].Name == "Bin 1") { k = 9; }
+			if (PrinterList[i]->TrayList.size() >= 0) { PrinterColumnWidths[k] = MAX(PrinterColumnWidths[k], (int)PrinterList[i]->TrayList[j].Name.size() + (int)PrinterList[i]->TrayList[j].Status.size() + 4); }
+		}
+	}
+	
+	PrinterColumnWidths[0] = MIN(MAX(PrinterColumnWidths[0], MinStatusLength), MaxStatusLength);
+	
+	PrinterColumns[0] = begin;
+	
+	for (int i = 1; i < 10; i++)
+	{
+		PrinterColumns[i] = PrinterColumns[i-1] + PrinterColumnWidths[i-1];
+	}
+}
+
+
+
 
 std::string Search(std::string str, std::string delim, int offset, int *i)
 {

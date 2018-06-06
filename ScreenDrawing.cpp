@@ -18,6 +18,7 @@ void Screen::Draw()
 	wattrset(TopPad, COLOR_PAIR(NORMAL));
 	
 	//Do drawing for printer grid
+	UpdatePrinterColumns();
 	int printerPos = 0;
 	for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
