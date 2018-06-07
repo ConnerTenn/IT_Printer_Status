@@ -5,11 +5,15 @@
 std::vector<Printer *> PrinterList;
 std::vector<Printer *> PrinterUpdateThreadList;
 Printer *Selected = 0;
-int SortOrder = 0;
+int SortOrder = 1;
+
 int PrinterColumns[10];
 int MinStatusLength = 0;
 int MaxStatusLength = 50;
-//std::mutex PrinterListGuard;
+bool RefreshingPrinters = false;
+
+int NetworkTimeout = 2;
+
 
 void InitPrinters()
 {
@@ -28,6 +32,8 @@ void InitPrinters()
 			PrinterUpdateThreadList.push_back(PrinterList.back());
 		}
 	}
+	
+	file.close();
 	
 	//mutexes created after adding printers to list to handle how std::vector copying and deleting Printer object issues
 	/*for (int i = 0; i < (int)PrinterList.size(); i++)
@@ -143,11 +149,11 @@ void UpdatePrinterColumns()
 			if (PrinterList[i]->TrayList[j].Name == "Multi-Purpose Feeder") { k = 7; }
 			if (PrinterList[i]->TrayList[j].Name == "Standard Bin") { k = 8; }
 			if (PrinterList[i]->TrayList[j].Name == "Bin 1") { k = 9; }
-			if (PrinterList[i]->TrayList.size() >= 0) { PrinterColumnWidths[k] = MAX(PrinterColumnWidths[k], (int)PrinterList[i]->TrayList[j].Name.size() + (int)PrinterList[i]->TrayList[j].Status.size() + 4); }
+			if (PrinterList[i]->TrayList.size() >= 0) { PrinterColumnWidths[k] = MAX(PrinterColumnWidths[k], (int)PrinterList[i]->TrayList[j].Name.size() + (int)PrinterList[i]->TrayList[j].Status.size() + 5); }
 		}
 	}
 	
-	PrinterColumnWidths[0] = MIN(MAX(PrinterColumnWidths[0], MinStatusLength), MaxStatusLength);
+	PrinterColumnWidths[0] = MIN(MAX(PrinterColumnWidths[0], MinStatusLength), MaxStatusLength) + 1;
 	
 	PrinterColumns[0] = begin;
 	
@@ -258,9 +264,9 @@ int First(std::string str, std::string first, std::string second, int offset, in
 	return (s1 <= s2 ? 1 : 0);
 }
 
-std::string MinSize(std::string str, int size)
+std::string MinSize(std::string str, int size, char fill)
 {
-	return str + std::string(MAX(size-(int)str.size(), 0), ' ');
+	return str + std::string(MAX(size-(int)str.size(), 0), fill);
 }
 
 std::string MaxSize(std::string str, int size)

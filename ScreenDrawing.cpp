@@ -54,6 +54,9 @@ void Screen::Draw()
 	else { wattrset(stdscr, A_BOLD |  COLOR_PAIR(0b001100)); waddstr(stdscr, "OFF"); }
 	
 	wattrset(stdscr, COLOR_PAIR(0b111100));
+	if (RefreshingPrinters) { waddstr(stdscr, "     Refreshing Printers"); }
+	
+	wattrset(stdscr, COLOR_PAIR(0b111100));
 	FillLine(stdscr, ' ');
 	
 	wmove(stdscr, Height-1, Width - 31);
@@ -61,6 +64,35 @@ void Screen::Draw()
 	
 	wattrset(stdscr, COLOR_PAIR(NORMAL));
 	
+	
+	
+	if (Popup)
+	{
+		DrawInfoMenu();	
+	}
+	
+	if (AutoScroll)
+	{
+		if (AutoScrollDelay++ >= 10)
+		{
+			int maxY = 0;
+			GetPrinterDisplayHeight(&maxY);
+			
+			if (ScrollY + Height - 2 >= maxY)
+			{
+				ScrollY = 0;
+			}
+			else
+			{
+				ScrollY += MIN((int)(Height * 0.75), maxY-(ScrollY+Height-2));
+			}
+			AutoScrollDelay = 0;
+		}
+	}
+	else 
+	{
+		AutoScrollDelay = 0;
+	}
 	
 	//Scroll Bar
 	{
@@ -81,9 +113,24 @@ void Screen::Draw()
 		wattrset(stdscr, COLOR_PAIR(0b111111));
 	}
 	
-	if (Popup)
-	{
-		wclear(PopupBorder);
+	
+	//Refresh display elements
+	wnoutrefresh(stdscr);
+	//touchwin(Pad);
+
+	pnoutrefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-2);
+	pnoutrefresh(TopPad, 0, ScrollX,0,0,1,Width-1);
+	
+	if (Popup) { wnoutrefresh(PopupBorder); wnoutrefresh(Popup); }
+
+	//Draw update to screen. Doing this after reduces screen flicker
+	doupdate();
+	
+}
+
+void Screen::DrawInfoMenu()
+{
+	wclear(PopupBorder);
 		wclear(Popup);
 		
 		wattrset(PopupBorder, A_BOLD | COLOR_PAIR(0b111111));
@@ -161,46 +208,4 @@ void Screen::Draw()
 		waddstr(Popup, "H/I: ");
 		wattrset(Popup, COLOR_PAIR(NORMAL));
 		waddstr(Popup, "Toggle Help and Info Menu");
-		
-		
-		
-	}
-	
-	
-	//Refresh display elements
-	wnoutrefresh(stdscr);
-	//touchwin(Pad);
-
-	pnoutrefresh(Pad, ScrollY, ScrollX, 1, 0, Height-2, Width-2);
-	pnoutrefresh(TopPad, 0, ScrollX,0,0,1,Width-1);
-	
-	if (Popup) { wnoutrefresh(PopupBorder); wnoutrefresh(Popup); }
-
-	//Draw update to screen. Doing this after reduces screen flicker
-	doupdate();
-	
-	
-	
-	if (AutoScroll)
-	{
-		if (AutoScrollDelay++ >= 10)
-		{
-			int maxY = 0;
-			GetPrinterDisplayHeight(&maxY);
-			
-			if (ScrollY + Height - 2 >= maxY)
-			{
-				ScrollY = 0;
-			}
-			else
-			{
-				ScrollY += MIN((int)(Height * 0.75), maxY-(ScrollY+Height-2));
-			}
-			AutoScrollDelay = 0;
-		}
-	}
-	else 
-	{
-		AutoScrollDelay = 0;
-	}
 }

@@ -159,12 +159,12 @@ void Screen::Resize()
 		Popup = subwin(stdscr, Height / 2, Width / 2, Height / 4, Width / 4);
 	}
 	
-	Scroll();
+	UpdateScroll();
 }
 
 
 
-void Screen::Scroll()
+void Screen::UpdateScroll()
 {
 	int maxY = 0;
 	int SelectMaxY = 0;

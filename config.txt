@@ -1,0 +1,10 @@
+MinStatusLength=0
+MaxStatusLength=50
+DynamicColumns=true #[true false]
+RefreshDelay=10 #seconds
+UpdateThreads=10
+NetworkTimeout=2 #seconds
+URLTopbar=
+URlStatus=
+
+

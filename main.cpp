@@ -5,72 +5,106 @@
 //#include <stdio.h>
 //#include <vector>
 //#include "Printer.h"
+#include "Threads.h"
 #include "Screen.h"
-
 
 bool Run = true;
 
-time_t Timer = 0;
-const int ThreadNum = 10;
-std::thread *PrinterThreads[ThreadNum];
-bool PrinterComplete[ThreadNum];
-int UpdateIndex = 0;
-std::mutex UpdateIndexMutex;
-
-void UpdatePrinters(int index)
+void GetConfigValue(std::string str, std::string *identifier, std::string *value)
 {
-	bool loop = true;
-	while (loop)
+	std::string id, val;
+	int state = 0; //0:space, 1:identifier, 2:space, 3:equals, 4:space, 5:value
+	
+	for (int i = 0; i < (int)str.size(); i++)
 	{
-		int updateI = 0;
-		UpdateIndexMutex.lock();
-		loop = UpdateIndex < (int)PrinterUpdateThreadList.size() && Run;
-		updateI = UpdateIndex;
-		UpdateIndex++;
-		UpdateIndexMutex.unlock();
-			
-		if (loop) { PrinterUpdateThreadList[updateI]->Update(); }
-	}
-		
-
-	PrinterComplete[index] = true;
-}
-
-
-
-void InitThreads()
-{
-	UpdateIndex = 0;
-	Timer = 0;
-	for (int i = 0; i < ThreadNum; i++)
-	{
-		PrinterComplete[i] = false;
-		PrinterThreads[i] = new std::thread(UpdatePrinters, i);
-	}
-}
-
-void JoinThreads()
-{
-	Run = false;
-
-	for (int i = 0; i < ThreadNum; i++)
-	{
-		if (PrinterThreads[i])
+		if (str[i] == ' ') 
 		{
-			PrinterThreads[i]->join();
-			delete PrinterThreads[i];
-			PrinterThreads[i] = 0;
+			if (state == 1) { state = 2; }
+			else if (state == 3) { state = 4; }
+		}
+		else if (str[i] == '#')
+		{
+			i = str.size();
+		}
+		else if (str[i] == '=')
+		{
+			if (state == 1 || state == 2) { state = 3; }
+		}
+		else if (isalnum(str[i]))
+		{
+			if (state == 0)
+			{
+				state = 1;
+				id += str[i];
+			}
+			else if (state == 4 || state == 5)
+			{
+				val += str[i];
+			}
 		}
 	}
-
-	Run = true;
+	
+	*identifier = id;
+	*value = val;
 }
+
+void LoadConfig()
+{
+	std::ifstream file("config.txt");
+	std::string line;
+	
+	while(std::getline(file, line))
+	{
+		if (line.size())
+		{
+			std::string identifier;
+			std::string value;
+			
+			GetConfigValue(line, &identifier, &value);
+			
+			if (identifier == "MinStatusLength")
+			{
+				MinStatusLength = atoi(value.c_str());
+			}
+			else if (identifier == "MaxStatusLength")
+			{
+				MaxStatusLength = atoi(value.c_str());
+			}
+			else if (identifier == "DynamicColumns")
+			{
+				
+			}
+			else if (identifier == "RefreshDelay")
+			{
+				RefreshDelay = atoi(value.c_str());
+			}
+			else if (identifier == "UpdateThreads")
+			{
+				ThreadNum = atoi(value.c_str());
+			}
+			else if (identifier == "NetworkTimeout")
+			{
+				NetworkTimeout = atoi(value.c_str());
+			}
+			else if (identifier == "URLTopbar")
+			{
+				
+			}
+			else if (identifier == "URLStatus")
+			{
+				
+			}
+		}
+	}
+}
+
+
 
 int main()
 {
 	MEVENT mouseEvent;
 	
-	
+	LoadConfig();
 	InitPrinters();
 	Screen screen; screen.Draw();
 	
@@ -84,25 +118,7 @@ int main()
 	
 	while (Run == true)
 	{
-		
-		if (Timer && time(0) - Timer > 5)
-		{
-			UpdateIndex = 0;
-			InitThreads();
-			Timer = 0;
-			
-		}
-		else if (!Timer && UpdateIndex >= (int)PrinterUpdateThreadList.size())
-		{
-			bool complete = true;
-			for (int i = 0; i <ThreadNum; i++) { complete = complete && PrinterComplete[i]; }
-
-			if (complete)
-			{
-				JoinThreads();
-				Timer = time(0);
-			}
-		}
+		UpdateThreadTimer();
 		
 		
 		SortPrinters();
@@ -148,7 +164,7 @@ int main()
 					else
 					{
 						Selected->Expanded = !Selected->Expanded;
-						screen.Scroll();
+						screen.UpdateScroll();
 					}
 				}
 				//Immediately select and expand
@@ -157,7 +173,7 @@ int main()
 					screen.Cursor = clickedI;
 					Selected = PrinterList[screen.Cursor];
 					Selected->Expanded = !Selected->Expanded;
-					screen.Scroll();
+					screen.UpdateScroll();
 				}
 			}
 			//Scroll Up
@@ -186,6 +202,7 @@ int main()
 		else if (key == 'r')
 		{
 			JoinThreads();
+			LoadConfig();
 			InitPrinters();
 			screen.Resize();
 			if (PrinterList.size()) { Selected = PrinterList[0]; }
@@ -230,7 +247,7 @@ int main()
 			bool allExpanded = true;
 			for (int i = 0; i < (int)PrinterList.size(); i++) { allExpanded = allExpanded && PrinterList[i]->Expanded; }
 			for (int i = 0; i < (int)PrinterList.size(); i++) { PrinterList[i]->Expanded = !allExpanded; }
-			screen.Scroll();
+			screen.UpdateScroll();
 		}
 		else if (key == 's')
 		{
@@ -243,7 +260,7 @@ int main()
 			screen.Cursor = (screen.Cursor < 1 ? 0 : screen.Cursor - 1);
 			Selected = PrinterList[screen.Cursor];
 			//screen.ScrollY=MAX(screen.ScrollY-3, 0);
-			screen.Scroll();
+			screen.UpdateScroll();
 			
 			screen.AutoScroll = false;
 		}
@@ -253,14 +270,14 @@ int main()
 			Selected = PrinterList[screen.Cursor];
 			//if ((screen.Cursor + 1) * (PrinterHeight + 1) > screen.Height + screen.ScrollY) { screen.ScrollY+=PrinterHeight; }
 			//screen.ScrollY+=3;
-			screen.Scroll();
+			screen.UpdateScroll();
 			
 			screen.AutoScroll = false;
 		}
 		else if (key == 10) //Enter Key
 		{
 			Selected->Expanded = !Selected->Expanded;
-			screen.Scroll();
+			screen.UpdateScroll();
 			
 			screen.AutoScroll = false;
 		}

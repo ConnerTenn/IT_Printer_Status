@@ -6,7 +6,7 @@ struct Screen;
 
 #include <vector>
 #include <curl/curl.h>
-#include <signal.h>
+//#include <signal.h>
 #include "Printer.h"
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -54,10 +54,12 @@ struct Screen
 	
 	void Resize();
 	
+
 	void Draw();
+	void DrawInfoMenu();
 	
 	//Update scroll position based on boundaries
-	void Scroll();
+	void UpdateScroll();
 };
 
 #endif

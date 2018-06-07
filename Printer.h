@@ -21,20 +21,23 @@ struct Printer;
 #elif LINUX
 #include <ncurses.h>
 #endif
-#include <thread>
 #include <mutex>
 #include "Screen.h"
 
-extern std::vector<Printer *> PrinterList; 
-extern std::vector<Printer *> PrinterUpdateThreadList; 
 const int PrinterHeight = 5; 
 const int PrinterWidth = 300; 
+
+extern std::vector<Printer *> PrinterList; 
+extern std::vector<Printer *> PrinterUpdateThreadList; 
 extern Printer *Selected; 
 extern int SortOrder; 
-//extern std::mutex PrinterListGuard; 
+
 extern int PrinterColumns[10];
 extern int MinStatusLength; 
 extern int MaxStatusLength; 
+extern bool RefreshingPrinters;
+
+extern int NetworkTimeout;
 
 
 void InitPrinters();
@@ -49,7 +52,7 @@ void UpdatePrinterColumns();
 std::string Search(std::string str, std::string delim, int offset = 0, int *i = 0);
 void Replace(std::string &str, std::string find, std::string replace);
 int First(std::string str, std::string first, std::string second, int offset = 0, int *i = 0);
-std::string MinSize(std::string str, int size);
+std::string MinSize(std::string str, int size, char fill = ' ');
 std::string MaxSize(std::string str, int size);
 
 

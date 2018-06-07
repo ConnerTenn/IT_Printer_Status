@@ -188,7 +188,7 @@ int Printer::Update()
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 2);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, NetworkTimeout);
 	Buffer.clear();
 	res = curl_easy_perform(curl);
 	HtmlTopBar = Buffer;
@@ -202,7 +202,7 @@ int Printer::Update()
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &WriteCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 2);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, NetworkTimeout);
 	Buffer.clear();
 	res = (res?res:curl_easy_perform(curl));
 	if (HtmlTopBar.find("<html class=\"top_bar\">") == std::string::npos) { res = CURLE_RECV_ERROR; }
@@ -296,7 +296,10 @@ void Printer::Draw(Screen *screen)
 	
 
 	wattrset(Pad, A_BOLD | COLOR_PAIR(StatusColour));
-	waddstr(Pad, (MaxSize(MinSize(Status, MinStatusLength), MaxStatusLength)).c_str()); 
+	std::string status = Status;
+	if ((int)Status.size() > MaxStatusLength) { status = MaxSize(status, MaxStatusLength-3); status += "..."; }
+	else { status = MinSize(status, MinStatusLength); }
+	waddstr(Pad, status.c_str()); 
 	waddstr(Pad, "  "); 
 	wattrset(Pad, COLOR_PAIR(NORMAL));
 	
