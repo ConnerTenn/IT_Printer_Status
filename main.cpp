@@ -29,18 +29,17 @@ void GetConfigValue(std::string str, std::string *identifier, std::string *value
 		else if (str[i] == '=')
 		{
 			if (state == 1 || state == 2) { state = 3; }
+			else { i = (int)str.size(); }
 		}
-		else if (isalnum(str[i]))
+		else if (state == 0 || state == 1)
 		{
-			if (state == 0)
-			{
-				state = 1;
-				id += str[i];
-			}
-			else if (state == 4 || state == 5)
-			{
-				val += str[i];
-			}
+			state = 1;
+			id += str[i];
+		}
+		else if (state == 3 || state == 4 || state == 5)
+		{
+			state = 5;
+			val += str[i];
 		}
 	}
 	
@@ -88,11 +87,15 @@ void LoadConfig()
 			}
 			else if (identifier == "URLTopbar")
 			{
-				
+				URLMutex.lock();
+				URLTopbar = value;
+				URLMutex.unlock();
 			}
 			else if (identifier == "URLStatus")
 			{
-				
+				URLMutex.lock();
+				URLStatus = value;
+				URLMutex.unlock();
 			}
 		}
 	}
@@ -121,7 +124,6 @@ int main()
 		UpdateThreadTimer();
 		
 		
-		SortPrinters();
 		screen.Draw();
 		
 		int key = getch();

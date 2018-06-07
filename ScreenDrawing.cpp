@@ -3,6 +3,8 @@
 
 void Screen::Draw()
 {
+	SortPrinters();
+	
 	//Clear Pads
 	clear();
 	wclear(TopPad);

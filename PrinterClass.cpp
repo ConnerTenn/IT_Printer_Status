@@ -147,16 +147,24 @@ void Printer::GetStatus()
 	}
 }
 
+std::string URLTopbar = ".internal/cgi-bin/dynamic/topbar.html";
+std::string URLStatus = ".internal/cgi-bin/dynamic/printer/PrinterStatus.html";
+std::mutex URLMutex;
+
 std::string Printer::GetUrlTopbar()
 {
-	//return "http://v4.ifconfig.co";
-	return Name + ".internal/cgi-bin/dynamic/topbar.html";
+	URLMutex.lock();
+	std::string urlTopbar = URLTopbar;
+	URLMutex.unlock();
+	return Name + urlTopbar;
 }
 
 std::string Printer::GetUrlStatus()
 {
-	//return "http://v4.ifconfig.co";
-	return Name + ".internal/cgi-bin/dynamic/printer/PrinterStatus.html";
+	URLMutex.lock();
+	std::string urlStatus = URLStatus;
+	URLMutex.unlock();
+	return Name + urlStatus;
 }
 
 size_t Printer::WriteCallback(void* buf, size_t size, size_t nmemb, void* userp)
@@ -364,18 +372,20 @@ void Printer::Draw(Screen *screen)
 			}
 			
 			
-			for (int i = 0, x = 0; i < (int)TrayList.size(); i++)
+			for (int i = 0; i < (int)TrayList.size(); i++)
 			{
-				wmove(Pad, 1, PrinterColumns[2] + x);
+				int j = i+2;
+				if (TrayList[i].Name == "Multi-Purpose Feeder") { j = 7; }
+				if (TrayList[i].Name == "Standard Bin") { j = 8; }
+				if (TrayList[i].Name == "Bin 1") { j = 9; }
+				wmove(Pad, 1, PrinterColumns[j]);
 				waddstr(Pad, std::to_string(TrayList[i].Capacity).c_str());
 				
-				wmove(Pad, 2, PrinterColumns[2] + x);
+				wmove(Pad, 2, PrinterColumns[j]);
 				waddstr(Pad, TrayList[i].PageSize.c_str());
 				
-				wmove(Pad, 3, PrinterColumns[2] + x);
+				wmove(Pad, 3, PrinterColumns[j]);
 				waddstr(Pad, TrayList[i].PageType.c_str());
-				
-				x+= TrayList[i].Name.size() + 6 + 2;
 			}
 		}
 	}

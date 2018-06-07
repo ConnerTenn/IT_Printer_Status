@@ -39,6 +39,9 @@ extern bool RefreshingPrinters;
 
 extern int NetworkTimeout;
 
+extern std::string URLTopbar;
+extern std::string URLStatus;
+extern std::mutex URLMutex;
 
 void InitPrinters();
 void DestroyPrinters();

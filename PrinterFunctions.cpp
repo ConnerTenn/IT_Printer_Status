@@ -77,13 +77,13 @@ void SortPrinters()
 				if (a->Status.find("File Error") != std::string::npos || a->Status.find("Network Error") != std::string::npos) { return 1; }
 				else if (b->Status.find("File Error") != std::string::npos || b->Status.find("Network Error") != std::string::npos) { return -1; }
 				// Red, Yellow, Blue, Green
-				if (a->StatusColour == 0b001000) { if (b->StatusColour == 0b001000) { a->Name.compare(b->Name); } else { return -1; } }
+				if (a->StatusColour == 0b001000) { if (b->StatusColour == 0b001000) { return a->Name.compare(b->Name); } else { return -1; } }
 				else if (b->StatusColour == 0b001000) { return 1; }
-				else if (a->StatusColour == 0b011000) { if (b->StatusColour == 0b011000) { a->Name.compare(b->Name); } else { return -1; } }
+				else if (a->StatusColour == 0b011000) { if (b->StatusColour == 0b011000) { return a->Name.compare(b->Name); } else { return -1; } }
 				else if (b->StatusColour == 0b011000) { return 1; }
-				else if (a->StatusColour == 0b100000) { if (b->StatusColour == 0b100000) { a->Name.compare(b->Name); } else { return -1; } }
+				else if (a->StatusColour == 0b100000) { if (b->StatusColour == 0b100000) { return a->Name.compare(b->Name); } else { return -1; } }
 				else if (b->StatusColour == 0b100000) { return 1; }
-				else if (a->StatusColour == 0b010000) { if (b->StatusColour == 0b010000) { a->Name.compare(b->Name); } else { return -1; } }
+				else if (a->StatusColour == 0b010000) { if (b->StatusColour == 0b010000) { return a->Name.compare(b->Name); } else { return -1; } }
 				else if (b->StatusColour == 0b010000) { return 1; }
 			}
 			
