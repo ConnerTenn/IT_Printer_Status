@@ -102,8 +102,6 @@ struct Printer
 	std::vector<Tray> TrayList;
 	std::vector<Kit> KitList;
 	
-	//int Toner = 0;
-	
 	WINDOW *Pad = 0;
 	
 	std::mutex *Mutex = 0;

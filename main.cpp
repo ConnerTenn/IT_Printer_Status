@@ -69,10 +69,6 @@ void LoadConfig()
 			{
 				MaxStatusLength = atoi(value.c_str());
 			}
-			else if (identifier == "DynamicColumns")
-			{
-				
-			}
 			else if (identifier == "RefreshDelay")
 			{
 				RefreshDelay = atoi(value.c_str());
@@ -130,6 +126,15 @@ int main()
 		
 		if (key == 27 && !screen.Popup) //Escape
 		{
+			wattrset(stdscr, A_BOLD | A_REVERSE | COLOR_PAIR(0b001000));
+			wmove(stdscr, screen.Height/2-1, screen.Width/2-5);
+			waddstr(stdscr, "          ");
+			wmove(stdscr, screen.Height/2, screen.Width/2-5);
+			waddstr(stdscr, " Quitting ");
+			wmove(stdscr, screen.Height/2+1, screen.Width/2-5);
+			waddstr(stdscr, "          ");
+			refresh();
+			
 			Run = false;
 		}
 		else if (key == KEY_RESIZE)

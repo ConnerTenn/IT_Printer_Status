@@ -162,6 +162,8 @@ void Screen::DrawInfoMenu()
 		wmove(Popup, 7, getmaxx(Popup)/2-5);
 		waddstr(Popup, "Help Menu"); 
 		
+		waddstr(Popup, "\nThe printer file stores all the printers that will be accessed by the program.\nThe config file contains various settings for the program operation.\n");
+		
 		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
 		wmove(Popup, 8, 0);
 		waddstr(Popup, "Key Bindings:"); FillLine(Popup, ' ');
@@ -209,5 +211,5 @@ void Screen::DrawInfoMenu()
 		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
 		waddstr(Popup, "H/I: ");
 		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Toggle Help and Info Menu");
+		waddstr(Popup, "Toggle Help and Info Menu\n");
 }

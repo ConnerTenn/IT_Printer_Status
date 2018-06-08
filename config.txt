@@ -1,6 +1,5 @@
 MinStatusLength=38
 MaxStatusLength=55
-#DynamicColumns=true #[true false]
 RefreshDelay=10 #seconds
 UpdateThreads=10
 NetworkTimeout=2 #seconds

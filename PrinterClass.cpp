@@ -238,7 +238,7 @@ int Printer::Update()
 	Buffer.clear();
 	res = curl_easy_perform(curl);
 	HtmlTopBar = Buffer;
-	if (HtmlTopBar.find("<html class=\"top_bar\">") == std::string::npos) { res = CURLE_RECV_ERROR; }
+	if (res == CURLE_OK && HtmlTopBar.find("<html class=\"top_bar\">") == std::string::npos) { res = CURLE_RECV_ERROR; }
 	if (res != CURLE_OK) { Status = "Network Error:" + std::to_string(res); StatusColour = 0b001000; }
 	
 	Mutex->lock();
@@ -251,11 +251,10 @@ int Printer::Update()
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, NetworkTimeout);
 	Buffer.clear();
 	res = (res?res:curl_easy_perform(curl));
-	if (HtmlTopBar.find("<html class=\"top_bar\">") == std::string::npos) { res = CURLE_RECV_ERROR; }
+	if (res == CURLE_OK && HtmlTopBar.find("<html class=\"top_bar\">") == std::string::npos) { res = CURLE_RECV_ERROR; }
 	if (res != CURLE_OK) { Status = "Network Error:" + std::to_string(res); StatusColour = 0b001000; }
 	HtmlStatus = Buffer;
 
-	
 	curl_easy_cleanup(curl);
 	
 	if (res == CURLE_OK) { GetStatus(); }
