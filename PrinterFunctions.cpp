@@ -133,15 +133,17 @@ void GetPrinterDisplayHeight(int *maxY, int *indexMinY, int *indexMaxY, int inde
 
 void UpdatePrinterColumns()
 {
-	const int begin = 18, tonerWidth = 25;
+	const int begin = 18;//, tonerWidth = 25, 32;
 	int PrinterColumnWidths[10];
 	
 	for (int i = 0; i < 10; i++) { PrinterColumnWidths[i] = 0; }
-	PrinterColumnWidths[1] = tonerWidth;
+	//PrinterColumnWidths[1] = tonerWidth;
 	
 	for (int i = 0; i < (int)PrinterList.size(); i++)
 	{
 		PrinterColumnWidths[0] = MAX(PrinterColumnWidths[0], (int)PrinterList[i]->Status.size());
+		
+		PrinterColumnWidths[1] = MAX(PrinterColumnWidths[1], ((int)PrinterList[i]->TonerList.size() > 1 && !PrinterList[i]->Expanded ? 35 : 25));
 		
 		for (int j = 0; j < (int)PrinterList[i]->TrayList.size(); j++)
 		{

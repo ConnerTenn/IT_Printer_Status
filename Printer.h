@@ -74,6 +74,12 @@ struct Kit
 	int LifeRemaining = 0;
 };
 
+struct Toner
+{
+	int Percent = 0;
+	short Colour = 0;
+};
+
 struct Printer
 {
 	std::string Name;
@@ -92,10 +98,11 @@ struct Printer
 	char StatusColour = 0;
 	bool Expanded = false;
 	
+	std::vector<Toner> TonerList;
 	std::vector<Tray> TrayList;
 	std::vector<Kit> KitList;
 	
-	int Toner = 0;
+	//int Toner = 0;
 	
 	WINDOW *Pad = 0;
 	
@@ -105,6 +112,9 @@ struct Printer
 	Printer(std::string name);
 	~Printer();
 	
+	void GetToner();
+	void GetTrays();
+	void GetKits();
 	void GetStatus();
 	
 	std::string GetUrlTopbar();
