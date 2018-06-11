@@ -8,10 +8,10 @@ Printer *Selected = 0;
 int SortOrder = 1;
 
 int PrinterColumns[10];
-int MinStatusLength = 0;
-int MaxStatusLength = 50;
 bool RefreshingPrinters = false;
 
+int MinStatusLength = 0;
+int MaxStatusLength = 50;
 int NetworkTimeout = 2;
 
 

@@ -357,8 +357,10 @@ void Printer::Draw(Screen *screen)
 	{
 		wmove(Pad, 0, PrinterColumns[1]);
 		//if (TonerList[0].Percent == 0) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } else if (TonerList[0].Percent <= 20) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b010000)); }
-		wattrset(Pad, A_BOLD | COLOR_PAIR(NORMAL));
-		for (int i = 0; i < (int)TonerList.size(); i++) { if (TonerList[i].Percent == 0) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); } }
+		short TonerStatusColour = 0b010010;
+		for (int i = 0; i < (int)TonerList.size(); i++) { if (TonerList[i].Percent <= 10) { TonerStatusColour = 0b011011; } }
+		for (int i = 0; i < (int)TonerList.size(); i++) { if (TonerList[i].Percent == 0) { TonerStatusColour = 0b001001; } }
+		wattrset(Pad, A_BOLD | COLOR_PAIR(TonerStatusColour & 0b111000));
 		waddstr(Pad, "Toner ");
 		
 		if ((int)TonerList.size() > 1) 
@@ -369,7 +371,9 @@ void Printer::Draw(Screen *screen)
 				{
 					wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(TonerList[i].Colour));
 					waddch(Pad, ' ');
-					if (TonerList[i].Percent) { wattrset(Pad, A_BOLD | COLOR_PAIR(NORMAL)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
+					if (!TonerList[i].Percent) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
+					else if (TonerList[i].Percent <= 10) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
+					else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b010000)); }
 					waddstr(Pad, MinSize("~" + std::to_string(TonerList[i].Percent) + "%", 6).c_str());
 				}
 			}
@@ -386,21 +390,23 @@ void Printer::Draw(Screen *screen)
 					waddstr(Pad, std::string(10 - TonerList[i].Percent/10, '_').c_str());
 					waddstr(Pad, "]");
 					
-					if (TonerList[i].Percent) { wattrset(Pad, A_BOLD | COLOR_PAIR(NORMAL)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
+					if (!TonerList[i].Percent) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
+					else if (TonerList[i].Percent <= 10) { wattrset(Pad, A_BOLD | COLOR_PAIR(0b011000)); }
+					else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b010000)); }
 					waddstr(Pad, MinSize("~" + std::to_string(TonerList[i].Percent) + "%", 6).c_str());
 				}
 			}
 		}
 		else
 		{
-			wattrset(Pad, A_BOLD | COLOR_PAIR(NORMAL));
+			wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000));
 			waddstr(Pad, "["); 
 			wattrset(Pad, A_BOLD | COLOR_PAIR(0b111111));
 			waddstr(Pad, std::string(TonerList[0].Percent/10, ' ').c_str());
-			wattrset(Pad, A_BOLD | COLOR_PAIR(NORMAL));
+			wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000));
 			waddstr(Pad, std::string(10 - TonerList[0].Percent/10, '_').c_str());
 			waddstr(Pad, "]");
-			if (TonerList[0].Percent) { wattrset(Pad, A_BOLD | COLOR_PAIR(NORMAL)); } else { wattrset(Pad, A_BOLD | COLOR_PAIR(0b001000)); }
+			wattrset(Pad, A_BOLD | COLOR_PAIR(TonerStatusColour & 0b111000));
 			waddstr(Pad, MinSize("~" + std::to_string(TonerList[0].Percent) + "%", 6).c_str());
 		}
 		

@@ -33,10 +33,10 @@ extern Printer *Selected;
 extern int SortOrder; 
 
 extern int PrinterColumns[10];
-extern int MinStatusLength; 
-extern int MaxStatusLength; 
 extern bool RefreshingPrinters;
 
+extern int MinStatusLength; 
+extern int MaxStatusLength; 
 extern int NetworkTimeout;
 
 extern std::string URLTopbar;

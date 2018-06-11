@@ -31,6 +31,10 @@ void GetConfigValue(std::string str, std::string *identifier, std::string *value
 			if (state == 1 || state == 2) { state = 3; }
 			else { i = (int)str.size(); }
 		}
+		else if (str[i] == '\r' || str[i] == '\n')
+		{
+			//bypass
+		}
 		else if (state == 0 || state == 1)
 		{
 			state = 1;
