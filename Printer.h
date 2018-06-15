@@ -85,7 +85,7 @@ struct Printer
 	std::string Name;
 	std::string Model;
 	std::string Address;
-	std::string ContactName;;
+	std::string Location;
 	
 	std::string MaintenanceKit;
 	std::string PCKit;

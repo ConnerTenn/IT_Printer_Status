@@ -164,7 +164,8 @@ void Printer::GetStatus()
 		int offset = 0;
 		Model = Search(HtmlTopBar, "<span class=\"top_prodname\">@<", offset, &offset);
 		Address = Search(HtmlTopBar, "Address: @<", offset, &offset);
-		ContactName = Search(HtmlTopBar, "Contact Name: @<", offset, &offset);
+		Location = Search(HtmlTopBar, "Location: @<", offset, &offset);
+		Replace(Location, "&#032;", " ");
 	}
 	
 	Mutex->lock();
@@ -443,13 +444,13 @@ void Printer::Draw(Screen *screen)
 		if (noError)
 		{
 			wmove(Pad, 1, 1);
-			waddstr(Pad, ("Model:       "+Model).c_str());
+			waddstr(Pad, ("Model:    "+Model).c_str());
 			
 			wmove(Pad, 2, 1);
-			waddstr(Pad, ("Address:     "+Address).c_str());
+			waddstr(Pad, ("Address:  "+Address).c_str());
 			
 			wmove(Pad, 3, 1);
-			waddstr(Pad, ("ContactName: "+ContactName).c_str());
+			waddstr(Pad, ("Location: "+Location).c_str());
 			
 			for (int i = 0; i < (int)KitList.size(); i++)
 			{
