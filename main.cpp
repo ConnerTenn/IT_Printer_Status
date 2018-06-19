@@ -161,7 +161,8 @@ int main()
 					
 					if (cursorMinY <= cursorY && cursorY < cursorMaxY) { clickedI = i; i = PrinterList.size(); }
 				}
-				if (cursorY > cursorMaxY) { clickedI = (int)PrinterList.size() - 1; }
+				//Clicked past last element
+				if (cursorY >= cursorMaxY) { clickedI = (int)PrinterList.size() - 1; }
 				
 				if (mouseEvent.bstate & (BUTTON1_PRESSED | BUTTON1_CLICKED))
 				{

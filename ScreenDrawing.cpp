@@ -56,7 +56,25 @@ void Screen::Draw()
 	else { wattrset(stdscr, A_BOLD |  COLOR_PAIR(0b001100)); waddstr(stdscr, "OFF"); }
 	
 	wattrset(stdscr, COLOR_PAIR(0b111100));
-	if (RefreshingPrinters) { waddstr(stdscr, "     Refreshing Printers"); }
+	if (RefreshingPrinters) { waddstr(stdscr, "     Refreshing Printers    "); }
+	else { waddstr(stdscr, "                            "); } 
+	
+	{
+		int NumPapers = 0;
+		for (int i = 0; i < (int)PrinterList.size(); i++)
+		{
+			for (int j = 0; j < (int)PrinterList[i]->TrayList.size(); j++)
+			{
+				if (PrinterList[i]->TrayList[j].Status == "Low" || PrinterList[i]->TrayList[j].Status == "Empty")
+				{
+					NumPapers++;
+				}
+			}
+		}
+		waddstr(stdscr, "Estimated Papers Needed:");
+		if (NumPapers > 0) { wattrset(stdscr, A_BOLD | COLOR_PAIR(0b001100)); }
+		waddstr(stdscr, std::to_string(NumPapers).c_str());
+	}
 	
 	wattrset(stdscr, COLOR_PAIR(0b111100));
 	FillLine(stdscr, ' ');
