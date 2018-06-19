@@ -3,14 +3,24 @@
 
 Screen *Screen::This = 0;
 
-void FillLine(int chr)
+void FillLine(char chr)
 {
 	addstr(std::string(getmaxx(stdscr)-getcurx(stdscr), chr).c_str());
 }
 
-void FillLine(WINDOW *win, int chr)
+void FillLine(WINDOW *win, char chr)
 {
 	waddstr(win, std::string(getmaxx(win)-getcurx(win), chr).c_str());
+}
+
+void FillLine(WINDOW *win, chtype chr)
+{
+	//waddstr(win, std::string(getmaxx(win)-getcurx(win), chr).c_str());
+	int count = getmaxx(win)-getcurx(win);
+	for (int i = 0; i < count; i++)
+	{
+		waddch(win, chr);
+	}
 }
 
 void Border(WINDOW *win, int x1, int y1, int x2, int y2)

@@ -364,8 +364,10 @@ void Printer::Draw(Screen *screen)
 		wattrset(Pad, A_BOLD | COLOR_PAIR(TonerStatusColour & 0b111000));
 		waddstr(Pad, "Toner ");
 		
+		//Draw Toner
 		if ((int)TonerList.size() > 1) 
 		{
+			//Colour Toners and Not Expanded
 			if (!Expanded)
 			{
 				for (int i = 0; i < (int)TonerList.size(); i++)
@@ -378,6 +380,7 @@ void Printer::Draw(Screen *screen)
 					waddstr(Pad, MinSize("~" + std::to_string(TonerList[i].Percent) + "%", 6).c_str());
 				}
 			}
+			//Colour Toner And Expanded
 			else
 			{
 				for (int i = 0; i < (int)TonerList.size(); i++)
@@ -398,6 +401,7 @@ void Printer::Draw(Screen *screen)
 				}
 			}
 		}
+		//Regular Toner
 		else
 		{
 			wattrset(Pad, A_BOLD | COLOR_PAIR(0b111000));
@@ -412,7 +416,7 @@ void Printer::Draw(Screen *screen)
 		}
 		
 			
-		//wmove(Pad, 0, TrayStart);
+		//Display Trays
 		for (int i = 0; i < (int)TrayList.size(); i++)
 		{
 			wattrset(Pad, (Selected == this ? A_BOLD : 0) | COLOR_PAIR(NORMAL));
@@ -433,7 +437,7 @@ void Printer::Draw(Screen *screen)
 	}
 	
 	
-	//if (Expanded)
+	if (Expanded)
 	{
 		wmove(Pad, 1, 0);
 		if (Selected == this) { wattrset(Pad, A_BOLD | A_REVERSE | COLOR_PAIR(0b110000)); }

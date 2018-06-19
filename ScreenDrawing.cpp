@@ -133,83 +133,85 @@ void Screen::Draw()
 void Screen::DrawInfoMenu()
 {
 	wclear(PopupBorder);
-		wclear(Popup);
-		
-		wattrset(PopupBorder, A_BOLD | COLOR_PAIR(0b111111));
-		wborder(PopupBorder, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
-		
-		wattrset(Popup, A_BOLD | A_UNDERLINE | COLOR_PAIR(NORMAL));
-		FillLine(Popup, ' ');
-		wmove(Popup, 0, getmaxx(Popup)/2-2);
-		
-		waddstr(Popup, "Info"); 
-		
-		wmove(Popup, 1, 0);
-		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Created By: "); 
-		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Conner Tenn"); FillLine(Popup, ' ');
-		
-		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Source Code availaible at:"); FillLine(Popup, ' ');
-		wattrset(Popup, A_BOLD | COLOR_PAIR(0b110000));
-		waddstr(Popup, "https://github.com/ConnerTenn/IT_Printer_Status"); FillLine(Popup, ' ');
-		
-		
-		wmove(Popup, 7, 0);
-		wattrset(Popup, A_BOLD | A_UNDERLINE | COLOR_PAIR(NORMAL));
-		FillLine(Popup, ' ');
-		wmove(Popup, 7, getmaxx(Popup)/2-5);
-		waddstr(Popup, "Help Menu"); 
-		
-		waddstr(Popup, "\nThe printer file stores all the printers that will be accessed by the program.\nThe config file contains various settings for the program operation.\n");
-		
-		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		wmove(Popup, 8, 0);
-		waddstr(Popup, "Key Bindings:"); FillLine(Popup, ' ');
-		waddstr(Popup, "A: ");
-		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Toggle Auto Scroll\n");
-		
-		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		waddstr(Popup, "R: ");
-		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Reload Printers From File and Reload\n");
-		
-		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		waddstr(Popup, "S: ");
-		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Toggle Sort Order\n");
+	wclear(Popup);
+	
+	wattrset(PopupBorder, A_BOLD | COLOR_PAIR(0b111111));
+	wborder(PopupBorder, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
+	
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	wmove(Popup, 0, getmaxx(Popup)/2-2);
+	waddstr(Popup, "Info"); 
+	FillLine(Popup, ' ');
+	FillLine(Popup, ACS_HLINE);
+	
+	
+	//wmove(Popup, 1, 2);
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Created By: "); 
+	wattrset(Popup, COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Conner Tenn"); FillLine(Popup, ' ');
+	
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Source Code availaible at:"); FillLine(Popup, ' ');
+	wattrset(Popup, A_BOLD | COLOR_PAIR(0b110000));
+	waddstr(Popup, "https://github.com/ConnerTenn/IT_Printer_Status"); FillLine(Popup, ' ');
+	
+	
+	wmove(Popup, 7, 0);
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	wmove(Popup, 7, getmaxx(Popup)/2-5);
+	waddstr(Popup, "Help Menu");
+	FillLine(Popup, ' ');
+	FillLine(Popup, ACS_HLINE);
+	
+	wattrset(Popup, COLOR_PAIR(NORMAL));
+	waddstr(Popup, "The printer file stores all the printers that will be accessed by the program.\nThe config file contains various settings for the program operation.\n\n");
+	
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Key Bindings:"); FillLine(Popup, ' ');
+	waddstr(Popup, "A: ");
+	wattrset(Popup, COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Toggle Auto Scroll\n");
+	
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	waddstr(Popup, "R: ");
+	wattrset(Popup, COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Reload Printers From File and Reload\n");
+	
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	waddstr(Popup, "S: ");
+	wattrset(Popup, COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Toggle Sort Order\n");
 
 #ifdef WINDOWS
-		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		waddstr(Popup, "M: ");
-		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Maximize Screen Size\n");
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	waddstr(Popup, "M: ");
+	wattrset(Popup, COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Maximize Screen Size\n");
 #endif
 
-		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		waddstr(Popup, "E: ");
-		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Expand/Contract All\n");
-		
-		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Enter: ");
-		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Expand/Contract Selected Printer\n");
-		
-		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Arrow Keys: ");
-		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Move Cursor and Scroll Left/Right\n");
-		
-		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Escape: ");
-		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Close Program\n");
-		
-		wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
-		waddstr(Popup, "H/I: ");
-		wattrset(Popup, COLOR_PAIR(NORMAL));
-		waddstr(Popup, "Toggle Help and Info Menu\n");
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	waddstr(Popup, "E: ");
+	wattrset(Popup, COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Expand/Contract All\n");
+	
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Enter: ");
+	wattrset(Popup, COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Expand/Contract Selected Printer\n");
+	
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Arrow Keys: ");
+	wattrset(Popup, COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Move Cursor and Scroll Left/Right\n");
+	
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Escape: ");
+	wattrset(Popup, COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Close Program\n");
+	
+	wattrset(Popup, A_BOLD | COLOR_PAIR(NORMAL));
+	waddstr(Popup, "H/I: ");
+	wattrset(Popup, COLOR_PAIR(NORMAL));
+	waddstr(Popup, "Toggle Help and Info Menu\n");
 }

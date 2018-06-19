@@ -28,8 +28,9 @@ enum Colours
 	GREY = 64,
 };
 
-void FillLine(int chr);
-void FillLine(WINDOW *win, int chr);
+void FillLine(char chr);
+void FillLine(WINDOW *win, char chr);
+void FillLine(WINDOW *win, chtype chr);
 void Border(WINDOW *win, int x1, int y1, int x2, int y2);
 
 struct Screen
